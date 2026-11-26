@@ -1,0 +1,18 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SIGAE WEB{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'atendimentos/css/base.css' %}">
+</head>
+<body>
+    <header class="cabecalho">
+        <a class="marca" href="{% url 'atendimentos:inicio' %}">SIGAE WEB</a>
+        <span>Estrutura de Dados Avançados</span>
+    </header>
+    <main>{% block content %}{% endblock %}</main>
+    <footer>Uso exclusivo como simulador acadêmico. Utilize somente dados fictícios.</footer>
+</body>
+</html>
