@@ -9,7 +9,7 @@ class InicioTests(SimpleTestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "atendimentos/inicio.html")
         self.assertContains(response, "SIGAE WEB")
-        self.assertContains(response, "/static/atendimentos/css/base.css")
+        self.assertContains(response, "/static/css/base.css")
         self.assertContains(response, "simulador acadêmico")
 
     def test_inicio_nao_aceita_post(self):
