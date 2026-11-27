@@ -182,6 +182,8 @@ class SistemaAtendimento:
             if paciente is None:
                 raise KeyError(id)
             if paciente.situacao == SituacaoPaciente.AGUARDANDO:
+                if self._relogio().astimezone(UTC) < paciente.chegada.astimezone(UTC):
+                    raise ValueError("O cancelamento não pode anteceder a chegada do paciente.")
                 self._fila.remover(id)
                 reverter.callback(self._fila.inserir, paciente)
                 self._chegadas.remover(paciente.chave_chegada)

@@ -240,6 +240,8 @@ class SistemaTests(TestCase):
         paciente = self._paciente("Aguardando", minutos=2)
         with patch.object(self.sistema, "_relogio", return_value=self.agora):
             with self.assertRaisesRegex(ValueError, "anteceder a chegada"):
+                self.sistema.cancelar_paciente(paciente.id)
+            with self.assertRaisesRegex(ValueError, "anteceder a chegada"):
                 self.sistema.chamar_proximo()
         self.assertEqual(self.sistema.listar_fila(), [paciente])
         self.assertEqual(self.sistema.listar_atendimentos_ativos(), [])
