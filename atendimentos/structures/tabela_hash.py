@@ -23,6 +23,12 @@ class TabelaHash(Generic[Valor]):
     def __len__(self) -> int:
         return self._quantidade
 
+    def capacidade_para(self, novas_chaves: int) -> int:
+        capacidade = self.capacidade
+        while self._quantidade + novas_chaves > capacidade * self._limite:
+            capacidade = capacidade * 2 + 1
+        return capacidade
+
     def _localizar(self, chave: int) -> tuple[list[tuple[int, Valor]], int | None]:
         if type(chave) is not int:
             raise ValueError("A chave da Hash deve ser um inteiro.")
@@ -38,10 +44,8 @@ class TabelaHash(Generic[Valor]):
         bucket, posicao = self._localizar(chave)
         if posicao is not None:
             raise ValueError(f"Chave duplicada: {chave}.")
-        if self._quantidade + 1 > self.capacidade * self._limite:
-            capacidade = self.capacidade * 2 + 1
-            while self._quantidade + 1 > capacidade * self._limite:
-                capacidade = capacidade * 2 + 1
+        capacidade = self.capacidade_para(1)
+        if capacidade != self.capacidade:
             self._redimensionar(capacidade)
             bucket = self._buckets[chave % self.capacidade]
         bucket.append((chave, valor))

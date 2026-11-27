@@ -171,6 +171,7 @@ Os contadores são crescentes e nunca são calculados pelo tamanho das filas.
 | Método | Retorno e regra |
 | --- | --- |
 | `cadastrar_paciente(nome, chegada, prioridade, ficha="")` | `Paciente`; gera ID e inclui nos três índices apropriados |
+| `demonstrar_colisao()` | `tuple[int, int, int]` com os dois IDs cadastrados e o número do bucket compartilhado. Considera a capacidade depois dos dois cadastros. |
 | `buscar_paciente(id)` | `Paciente` ou `None`; consulta a Hash própria |
 | `listar_fila()` | `list[Paciente]`; percurso em ordem da árvore, com referências aos registros |
 | `proximo_paciente()` | `Paciente` na raiz do heap ou `None` se estiver vazio |
@@ -189,7 +190,7 @@ Os contadores são crescentes e nunca são calculados pelo tamanho das filas.
 | `listar_chegadas()` | `list[Paciente]` de todos os estados, ordenada por chegada e ID |
 | `obter_indicadores()` | `dict[str, int]` com os totais de pacientes nas chaves `aguardando`, `em_atendimento`, `concluido` e `cancelado`, incluindo situações com zero |
 | `resumo_painel(fuso)` | Totais acumulados por situação, conclusões na data local, médicos disponíveis, até cinco pacientes por prioridade, próximo paciente e médico elegível |
-| `inspecionar_indices()` | Método interno para obter uma leitura validada da árvore, dos dois heaps e da Hash de pacientes. Inconsistência gera `ValueError`. |
+| `inspecionar_indices()` | `dict` com a leitura validada da árvore, dos dois heaps e da Hash de pacientes, usada na página **Estruturas**. Inconsistência gera `ValueError`. |
 | `validar_indices()` | `None`; inconsistência gera `ValueError` |
 
 Operações de alteração com ID inexistente geram `KeyError`; dados ou transições

@@ -1,0 +1,67 @@
+{% extends "atendimentos/base.html" %}
+{% load static %}
+
+{% block title %}Estruturas · SIGAE WEB{% endblock %}
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/estruturas.css' %}">{% endblock %}
+
+{% block content %}
+<header class="pagina-cabecalho">
+    <div>
+        <h1>Estruturas</h1>
+        <p>Veja como os registros da sessão estão organizados nos índices.</p>
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <button class="botao" type="submit">Validar índices</button>
+    </form>
+</header>
+{% if erro %}
+    <p class="mensagem error" role="alert"><strong>Inconsistência detectada.</strong> {{ erro }}</p>
+{% else %}
+    {% if validado %}
+        <p class="mensagem success" role="status">Índices consistentes. A verificação conferiu as estruturas, os vínculos e os contadores.</p>
+    {% endif %}
+    <section class="painel">
+        <h2>Árvore Rubro-Negra</h2>
+        <p class="muted">{{ indices.nos_arvore }} na fila de espera. E indica o ramo esquerdo e D, o direito. As folhas NIL são pretas.</p>
+        {% if indices.arvore %}
+            <div class="arvore-scroll" role="region" aria-label="Nós da Árvore Rubro-Negra" tabindex="0">
+                <ul class="arvore">
+                    {% include "atendimentos/_no_arvore.html" with no=indices.arvore only %}
+                </ul>
+            </div>
+        {% else %}
+            <p class="indices-vazio">Árvore vazia.</p>
+        {% endif %}
+    </section>
+
+    <p class="indices-legenda muted">Os heaps são exibidos na ordem do vetor. Na posição <var>i</var>, os filhos ficam em <code>2i + 1</code> e <code>2i + 2</code>, se existirem.</p>
+    <div class="grade">
+        {% include "atendimentos/_heap_indices.html" with titulo="Min-Heap de pacientes" descricao="O menor número de classificação tem prioridade. O desempate usa chegada e ID." itens=indices.heap_pacientes only %}
+        {% include "atendimentos/_heap_indices.html" with titulo="Min-Heap de médicos" descricao="O desempate entre médicos com o mesmo total usa a última atribuição e o ID." itens=indices.heap_medicos medicos=True only %}
+    </div>
+
+    <section class="painel">
+        <h2>Tabela Hash de pacientes</h2>
+        <form method="post" action="{% url 'atendimentos:demonstrar_colisao' %}">
+            {% csrf_token %}
+            <p class="muted">Adiciona dois pacientes fictícios à fila. Clique nos IDs do bucket para consultá-los.</p>
+            <button class="botao" type="submit">Demonstrar colisão</button>
+        </form>
+        <dl class="hash-resumo">
+            <div><dt>Capacidade</dt><dd>{{ indices.capacidade_hash }}</dd></div>
+            <div><dt>Registros</dt><dd>{{ indices.registros_hash }}</dd></div>
+            <div><dt>Buckets com colisão</dt><dd>{{ indices.colisoes_hash }}</dd></div>
+        </dl>
+        <ul class="hash-buckets">
+            {% for chaves in indices.buckets %}
+                <li{% if chaves|length > 1 %} class="hash-colisao"{% endif %}>
+                    <strong>Bucket {{ forloop.counter0 }}</strong>
+                    {% if chaves|length > 1 %}<span class="hash-status">Colisão</span>{% endif %}
+                    <span>{% for id in chaves %}<a href="{% url 'atendimentos:pacientes' %}?id={{ id }}">#{{ id }}</a>{% if not forloop.last %}, {% endif %}{% empty %}Vazio{% endfor %}</span>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
+{% endblock %}

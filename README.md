@@ -24,7 +24,7 @@ Os cadastros, filas, atendimentos e contadores ficam em memória, compartilhados
 3. Faça três chamadas e confirme as atribuições. A quarta deve manter o próximo paciente na fila enquanto os três médicos estiverem ocupados.
 4. Conclua um atendimento e cancele outro. Confira os contadores e chame o próximo paciente. Entre os disponíveis, o médico com menos conclusões tem preferência. Empates usam a atribuição mais antiga e depois o menor ID.
 5. Confira os encerramentos e o filtro por médico em **Histórico**. O **Painel geral** mostra os totais acumulados de pacientes por situação, as conclusões do dia no fuso configurado e os médicos disponíveis. O total de cancelados inclui pacientes cancelados na espera e durante o atendimento.
-6. Execute os testes para conferir os invariantes da árvore, dos heaps e da Hash.
+6. Em **Estruturas**, veja as três estruturas e use **Validar índices**. Use **Demonstrar colisão** para adicionar dois pacientes fictícios ao mesmo bucket e consulte cada cadastro pelo link do ID.
 
 ## Testes e documentação
 

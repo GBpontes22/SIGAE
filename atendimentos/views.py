@@ -67,6 +67,18 @@ def triagem(request):
     })
 
 
+@require_http_methods(["GET", "HEAD", "POST"])
+def estruturas(request):
+    try:
+        indices = _sistema.inspecionar_indices()
+    except ValueError as erro:
+        return render(request, "atendimentos/estruturas.html", {"erro": str(erro)}, status=500)
+    return render(request, "atendimentos/estruturas.html", {
+        "indices": indices,
+        "validado": request.method == "POST",
+    })
+
+
 def _confirmar_cancelamento(request, titulo, descricao, destino):
     return render(request, "atendimentos/confirmar_cancelamento.html", {
         "titulo": titulo, "descricao": descricao, "destino": f"atendimentos:{destino}",
@@ -113,11 +125,21 @@ def cancelar_paciente(request, id):
             "triagem",
         )
 
+
     def cancelar():
         paciente = _sistema.cancelar_paciente(id)
         return f"Paciente #{paciente.id} cancelado."
 
     return _executar(request, "triagem", cancelar)
+
+
+@require_POST
+def demonstrar_colisao(request):
+    def cadastrar():
+        primeiro, segundo, bucket = _sistema.demonstrar_colisao()
+        return f"Pacientes fictícios #{primeiro} e #{segundo} foram cadastrados no bucket {bucket}."
+
+    return _executar(request, "estruturas", cadastrar)
 
 
 @require_POST

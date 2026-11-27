@@ -1,0 +1,24 @@
+{% load apresentacao %}
+<section class="painel">
+    <h2>{{ titulo }}</h2>
+    <p class="muted">{{ descricao }}</p>
+    {% if itens %}
+        <ol class="heap-posicoes" start="0">
+            {% for id, nome, criterio, instante in itens %}
+                <li{% if forloop.first %} class="heap-raiz"{% endif %}>
+                    <span class="heap-posicao">{% if forloop.first %}Raiz · {% endif %}Posição {{ forloop.counter0 }}</span>
+                    <strong>#{{ id }} · {{ nome }}</strong>
+                    {% if medicos %}
+                        <span>{{ criterio }} concluído{{ criterio|pluralize }}</span>
+                        <small>{% if instante %}Última atribuição {{ instante|date:"d/m/Y H:i:s" }}{% else %}Sem atribuição anterior{% endif %}</small>
+                    {% else %}
+                        <span>{{ criterio|prioridade }}</span>
+                        <small>Chegada {{ instante|date:"d/m/Y H:i:s" }}</small>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    {% else %}
+        <p class="indices-vazio">Heap vazio.</p>
+    {% endif %}
+</section>
