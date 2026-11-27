@@ -55,7 +55,7 @@ a { color: var(--accent-dark); font-weight: 600; text-underline-offset: .22em; }
 .marca small { display: block; margin-top: .26rem; font-size: clamp(.62rem, .81vw, .83rem); font-weight: 500; }
 
 .navegacao { display: grid; gap: .3rem; }
-.navegacao a, .barra-rodape {
+.navegacao a {
     display: flex;
     align-items: center;
     gap: clamp(.55rem, 1.45vw, 1.45rem);
@@ -72,13 +72,6 @@ a { color: var(--accent-dark); font-weight: 600; text-underline-offset: .22em; }
 .navegacao a .icone { width: 1.8rem; height: 1.8rem; }
 .navegacao a:hover { background: #ffffff12; }
 .navegacao a[aria-current] { background: #ffffff20; font-weight: 650; }
-.barra-rodape {
-    margin: auto .55rem 0;
-    padding: 1.25rem .55rem 0;
-    border-top: 1px solid #ffffff70;
-    font-size: .93rem;
-}
-.barra-rodape .icone { width: 1.8rem; height: 1.8rem; }
 main.layout { margin-top: clamp(1.35rem, 2vw, 2.4rem); padding-bottom: 1rem; }
 
 h1, h2, p { margin: 0; }
@@ -119,8 +112,8 @@ p + p { margin-top: .4rem; }
 .formulario + p { margin-top: .85rem; }
 .formulario label { display: block; margin-bottom: .28rem; }
 label { font-weight: 650; font-size: .9rem; }
-input, select, button { font: inherit; }
-input, select {
+input, select, textarea, button { font: inherit; }
+input, select, textarea {
     max-width: 100%;
     min-height: 2.35rem;
     padding: .36rem .58rem;
@@ -130,7 +123,10 @@ input, select {
     color: inherit;
 }
 
-.formulario input, .formulario select { width: 100%; }
+.formulario input, .formulario select, .formulario textarea { width: 100%; }
+.formulario textarea { display: block; resize: vertical; }
+.ficha-paciente { margin-top: 1rem; padding-top: .75rem; border-top: 1px solid var(--line); overflow-wrap: anywhere; }
+.ficha-paciente h3 { margin: 0 0 .35rem; font-size: 1rem; }
 .form-linha { display: flex; align-items: center; flex-wrap: wrap; gap: .45rem; }
 .painel > p + .form-linha { margin-top: 1rem; }
 .filtro { margin-bottom: .8rem; }
@@ -193,7 +189,6 @@ tbody tr:last-child > * { border-bottom: 0; }
     .navegacao { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .navegacao a { gap: .42rem; min-height: 2.45rem; padding: .35rem .43rem; font-size: .86rem; }
     .navegacao a .icone { width: 1.22rem; height: 1.22rem; }
-    .barra-rodape { display: none; }
     .layout { width: calc(100% - 1.5rem); }
     .grade { grid-template-columns: 1fr; }
 }

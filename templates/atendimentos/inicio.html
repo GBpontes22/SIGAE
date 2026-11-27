@@ -34,6 +34,16 @@
         <dt>Concluídos hoje</dt>
         <dd>{{ concluidos_hoje }}</dd>
     </div>
+    <div class="indicador indicador-total">
+        <span class="indicador-icone">{% icone "historico" %}</span>
+        <dt>Concluídos no total</dt>
+        <dd>{{ concluido }}</dd>
+    </div>
+    <div class="indicador indicador-total">
+        <span class="indicador-icone">{% icone "cancelado" %}</span>
+        <dt>Cancelados no total</dt>
+        <dd>{{ cancelado }}</dd>
+    </div>
 </dl>
 
 <div class="painel-grade">

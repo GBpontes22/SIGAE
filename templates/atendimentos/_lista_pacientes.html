@@ -13,7 +13,9 @@
         {% for paciente in pacientes %}
             <tr>
                 <td class="identificador">#{{ paciente.id }}</td>
-                <th scope="row">{{ paciente.nome }}</th>
+                <th scope="row">
+                    {% if consultar %}<a href="{% url 'atendimentos:pacientes' %}?id={{ paciente.id }}">{{ paciente.nome }}</a>{% else %}{{ paciente.nome }}{% endif %}
+                </th>
                 <td class="data">{{ paciente.chegada|date:"d/m/Y H:i:s" }}</td>
                 <td><span class="risco risco-{{ paciente.prioridade }}">{{ paciente.prioridade|prioridade }}</span></td>
                 <td><span class="estado {{ paciente.situacao }}">{{ paciente.situacao|situacao }}</span></td>

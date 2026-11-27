@@ -22,7 +22,7 @@ class Medico:
         if not isinstance(nome, str) or not nome.strip():
             raise ValueError("O nome do médico é obrigatório.")
         if not isinstance(registro, str) or not registro.strip():
-            raise ValueError("O registro fictício do médico é obrigatório.")
+            raise ValueError("O registro profissional é obrigatório.")
         self._id = id
         self._nome = nome.strip()
         self._registro = registro.strip()

@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 from random import Random
 from unittest import TestCase
+from unittest.mock import patch
 
 from atendimentos.domain.paciente import Paciente
 from atendimentos.structures.arvore_rubro_negra import ArvoreRubroNegra
@@ -78,3 +79,24 @@ class EstruturasTests(TestCase):
             arvore.validar()
         self.assertEqual(arvore.em_ordem(), [])
         self.assertEqual(len(arvore), 0)
+
+    def test_heap_reverte_remocao_com_falha_apos_alterar_hash(self):
+        heap = MinHeap(lambda paciente: paciente.chave_prioridade)
+        for id in range(1, 6):
+            heap.inserir(Paciente(id, f"Paciente {id}", CHEGADA, id))
+        vetor = heap.em_ordem_de_posicao()
+        remover = heap._posicoes.remover
+
+        def falhar_depois_de_remover(id):
+            remover(id)
+            raise RuntimeError("falha após remover posição")
+
+        with patch.object(heap._posicoes, "remover", side_effect=falhar_depois_de_remover):
+            with self.assertRaisesRegex(RuntimeError, "falha após remover posição"):
+                heap.extrair_minimo()
+
+        self.assertEqual(heap.em_ordem_de_posicao(), vetor)
+        self.assertIs(heap.buscar(1), vetor[0])
+        heap.validar()
+        self.assertIs(heap.extrair_minimo(), vetor[0])
+        heap.validar()

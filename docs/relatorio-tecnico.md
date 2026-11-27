@@ -12,15 +12,15 @@ O SIGAE WEB simula cadastro, triagem, distribuição entre médicos, conclusão 
 
 A chamada verifica as duas filas antes de remover registros. Atualizações dos índices e dos vínculos são protegidas por uma trava no processo. Se uma etapa falhar, as alterações já realizadas são revertidas em ordem inversa. Concluir libera o médico e incrementa seu contador uma vez. Cancelar libera o médico sem incrementar o contador. As chaves cronológicas usam UTC.
 
-A página **Estruturas** mostra os dados de uma leitura consistente da sessão, incluindo as cores reais dos nós, a posição de cada item nos dois vetores e os IDs por bucket da Hash de pacientes. **Validar índices** executa as verificações do serviço. O cancelamento pelo navegador passa por uma tela de confirmação e a alteração é enviada via POST com proteção CSRF.
+A página Estruturas permite inspecionar e validar as cores dos nós, as posições dos heaps e os IDs por bucket da Hash de pacientes. O cancelamento pelo navegador passa por uma tela de confirmação e a alteração é enviada via POST com proteção CSRF.
 
 ## Evidências
 
-O comando `python manage.py test --verbosity 2` executa a suíte reproduzível. Na verificação local, os 35 testes passaram.
+O comando `python manage.py test --verbosity 2` executa a suíte reproduzível. Na verificação local, os 41 testes passaram.
 
-- `test_estruturas.py` cobre colisões, redimensionamento, mudanças de prioridade no heap e as invariantes da árvore após inserções e remoções.
-- `test_sistema.py` cobre três médicos, desempates, indisponibilidade, reclassificação, chamadas concorrentes e falhas intermediárias. Também testa a reversão de falhas ao cancelar um paciente aguardando e um atendimento ativo.
-- `test_fluxo_web.py` cobre formulários, chamada, histórico, confirmação de cancelamento, CSRF e demonstração de colisão com redimensionamento e consulta dos dois pacientes pela interface.
+- `test_estruturas.py` cobre colisões, redimensionamento, mudanças de prioridade, rollback durante a remoção no Heap e invariantes da árvore.
+- `test_sistema.py` cobre três médicos, desempates, indisponibilidade, chamadas concorrentes e rollback durante cadastro, reclassificação, chamada, conclusão e cancelamento.
+- `test_fluxo_web.py` cobre os cadastros, a consulta da ficha, chamada, histórico, triagem durante uma chamada concorrente, indicadores, confirmação de cancelamento e CSRF. Também verifica a página Estruturas, a colisão com redimensionamento e a consulta dos dois pacientes pela interface.
 - `test_paciente.py` cobre as regras do paciente e a ordenação quando o horário local se repete.
 
 ## Critérios de aceitação da defesa

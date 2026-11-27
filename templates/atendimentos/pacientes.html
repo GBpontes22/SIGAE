@@ -25,6 +25,14 @@
         {% if encontrado %}
             <p class="destaque">{{ encontrado.nome }} <span class="identificador">#{{ encontrado.id }}</span></p>
             <p><span class="estado {{ encontrado.situacao }}">{{ encontrado.situacao|situacao }}</span></p>
+            <section class="ficha-paciente">
+                <h3>Ficha do paciente</h3>
+                {% if encontrado.ficha %}
+                    <p>{{ encontrado.ficha|linebreaksbr }}</p>
+                {% else %}
+                    <p class="vazio">Nenhuma ficha registrada.</p>
+                {% endif %}
+            </section>
         {% elif consulta.cleaned_data.id %}
             <p class="vazio">Paciente não encontrado.</p>
         {% endif %}
@@ -32,6 +40,6 @@
 </div>
 <section class="painel">
     <h2>Registros de pacientes</h2>
-    {% include "atendimentos/_lista_pacientes.html" with rotulo_tabela="Registros de pacientes" sem_registros="Nenhum paciente cadastrado." %}
+    {% include "atendimentos/_lista_pacientes.html" with consultar=True rotulo_tabela="Registros de pacientes" sem_registros="Nenhum paciente cadastrado." %}
 </section>
 {% endblock %}

@@ -1,5 +1,7 @@
 from django import forms
 
+from .domain.paciente import LIMITE_FICHA
+
 
 PRIORIDADES = (
     (1, "1 · Emergência"),
@@ -17,13 +19,19 @@ class TriagemForm(forms.Form):
 
 
 class PacienteForm(TriagemForm):
-    field_order = ("nome", "prioridade")
-    nome = forms.CharField(label="Nome fictício", max_length=120)
+    field_order = ("nome", "prioridade", "ficha")
+    nome = forms.CharField(label="Nome", max_length=120)
+    ficha = forms.CharField(
+        label="Ficha do paciente",
+        required=False,
+        max_length=LIMITE_FICHA,
+        widget=forms.Textarea(attrs={"rows": 4}),
+    )
 
 
 class MedicoForm(forms.Form):
-    nome = forms.CharField(label="Nome fictício", max_length=120)
-    registro = forms.CharField(label="Registro profissional fictício", max_length=40)
+    nome = forms.CharField(label="Nome", max_length=120)
+    registro = forms.CharField(label="Registro profissional", max_length=40)
 
 
 class ConsultaForm(forms.Form):

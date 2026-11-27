@@ -1,6 +1,6 @@
 # Roteiro de defesa do SIGAE
 
-Use uma sessão local nova e dados fictícios. Abra o painel e a página **Estruturas** em abas separadas. Recarregue a segunda aba após cada operação para comparar o estado dos índices.
+Use uma sessão local nova e dados fictícios. Abra o painel e a página **Triagem e fila** para comparar a próxima chamada com a ordem de chegada.
 
 | Passo | Ação | Resultado a mostrar |
 | --- | --- | --- |
@@ -18,4 +18,4 @@ Para mostrar também o redimensionamento na mesma ação, comece em uma sessão 
 
 Para demonstrar o rollback de cancelamento, execute `python manage.py test atendimentos.tests.test_sistema.SistemaTests.test_falha_no_cancelamento_restaura_espera_e_atendimento_ativo --verbosity 2`. O teste injeta falhas no meio das mudanças e verifica o estado antes de repetir a operação.
 
-**Variação para o ensaio.** Peça à pessoa que operar o sistema que escolha, na hora, um paciente aguardando para reclassificar ou cancelar. Confira as raízes dos heaps e valide os índices após a escolha.
+**Variação para o ensaio.** Peça à pessoa que operar o sistema que escolha, na hora, um paciente aguardando para reclassificar ou cancelar. Confira o próximo paciente e a ordem de chegada. Use a suíte de testes para demonstrar a validação interna dos índices.

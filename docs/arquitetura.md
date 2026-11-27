@@ -40,10 +40,11 @@ Reiniciar o servidor cria uma sessão vazia.
 ### Paciente — implementado
 
 Campos: `id: int`, `nome: str`, `chegada: datetime`, `prioridade: int`,
-`situacao: SituacaoPaciente`.
+`situacao: SituacaoPaciente` e `ficha: str`.
 
 - ID positivo, atribuído pelo serviço; unicidade conferida na Hash.
 - Nome obrigatório; chegada com fuso horário; prioridade inteira de 1 a 5.
+- A ficha é opcional, aceita até 2.000 caracteres e aparece na consulta por ID.
 - ID e chegada não mudam enquanto o registro existir.
 - `chave_chegada = (chegada em UTC, id)`.
 - `chave_prioridade = (prioridade, chegada em UTC, id)`.
@@ -59,7 +60,7 @@ com a fila, os vínculos e a recuperação de falhas.
 ### Medico
 
 Campos: `id: int`, `nome: str`, `registro: str`, `situacao: SituacaoMedico`,
-`total_concluidos: int`, `ultima_atribuicao: datetime | None`.
+`total_concluidos: int` e `ultima_atribuicao: datetime | None`.
 
 - ID automático e positivo; nome e registro fictício não vazios.
 - Inicia Disponível, com zero conclusões e última atribuição `None`.
@@ -97,9 +98,9 @@ Campos: `id: int`, `paciente: Paciente`, `medico: Medico`,
 | Hash de vínculos ativos | ID do paciente para seu atendimento em andamento |
 | Hash interna de cada Heap | ID do item para sua posição na lista do Heap |
 
-Cada paciente possui uma única instância compartilhada pelos índices. Não criar
-cópias independentes do paciente em cada estrutura. A mesma regra vale para médicos.
-O atendimento tem ID próprio e referências às entidades existentes.
+Os índices compartilham uma única instância de cada paciente e de cada médico.
+O atendimento tem ID próprio e referências às entidades existentes. A triagem
+recebe uma cópia imutável dos campos exibidos, montada sob a trava do serviço.
 
 A árvore não precisa conter pacientes concluídos ou cancelados. Por isso,
 a igualdade de IDs é exigida entre árvore, Heap de pacientes e subconjunto
@@ -120,7 +121,7 @@ As assinaturas oficiais estão em `atendimentos/contratos.py`.
 | Heap | `consultar_minimo()` | Referência à raiz ou `None` se vazio |
 | Heap | `extrair_minimo()` | Registro removido; vazio gera `IndexError` |
 | Heap | `remover(id)` | Registro removido; ausente gera `KeyError` |
-| Heap | `atualizar(id)` | Reorganiza após mudança da chave; ausente gera `KeyError` |
+| Heap | `atualizar(id)` | `None`; reorganiza após mudança da chave, com `KeyError` para ID ausente |
 | Árvore | `inserir(chave, paciente)` | `None`; duplicidade ou chave divergente gera `ValueError` |
 | Árvore | `buscar(chave)` | Paciente ou `None` se ausente |
 | Árvore | `remover(chave)` | Paciente removido; ausente gera `KeyError` |
@@ -128,10 +129,11 @@ As assinaturas oficiais estão em `atendimentos/contratos.py`.
 | Todas | `__len__()` | Quantidade de registros, sem percorrer toda a estrutura |
 | Todas | `validar()` | `None` se válida; inconsistência gera `ValueError` |
 
-`None` não será armazenado como valor na Hash: ele representa uma busca sem resultado.
-As implementações devem rejeitar erros de entrada antes de modificar o estado.
-Os métodos de listagem não permitem que alterar a lista retornada altere os nós ou
-buckets internos; seus elementos continuam sendo referências às entidades.
+A Hash reserva `None` para uma busca sem resultado. Os métodos de listagem
+retornam uma nova coleção de referências às entidades. O Heap restaura seu
+vetor e sua Hash de posições se a inserção, remoção ou reorganização falhar.
+O mecanismo guarda as posições e os buckets afetados e também recupera a
+capacidade anterior da Hash de posições quando a inserção provoca rehash.
 
 ### Configuração das implementações
 
@@ -161,33 +163,42 @@ compara-se o instante da última atribuição em UTC. O menor ID desempata.
 
 ## Serviço central
 
-`SistemaAtendimento` recebe/possui as Hashes, os dois heaps e a árvore.
-Também controla os geradores de IDs de pacientes, médicos e atendimentos.
+`SistemaAtendimento` cria as Hashes, os dois heaps e a árvore. O construtor
+aceita um relógio opcional e controla os geradores de IDs de pacientes,
+médicos e atendimentos.
 Os contadores são crescentes e nunca são calculados pelo tamanho das filas.
 
 | Método | Retorno e regra |
 | --- | --- |
-| `cadastrar_paciente(nome, chegada, prioridade)` | `Paciente`; gera ID e inclui nos três índices apropriados |
+| `cadastrar_paciente(nome, chegada, prioridade, ficha="")` | `Paciente`; gera ID e inclui nos três índices apropriados |
+| `demonstrar_colisao()` | `tuple[int, int, int]` com os dois IDs cadastrados e o número do bucket compartilhado. Considera a capacidade depois dos dois cadastros. |
 | `buscar_paciente(id)` | `Paciente` ou `None`; consulta a Hash própria |
-| `listar_fila()` | `list[Paciente]`; percurso em ordem da árvore |
+| `listar_fila()` | `list[Paciente]`; percurso em ordem da árvore, com referências aos registros |
+| `proximo_paciente()` | `Paciente` na raiz do heap ou `None` se estiver vazio |
+| `resumo_triagem()` | Par com a tupla de `PacienteNaFila` por chegada e o resumo da raiz ou `None`. Os campos são copiados sob a mesma trava. |
 | `reclassificar_paciente(id, prioridade)` | `Paciente`; modifica risco e reorganiza Heap como uma operação |
 | `cadastrar_medico(nome, registro)` | `Medico`; gera ID e inclui cadastro e Heap de disponíveis |
 | `buscar_medico(id)` | `Medico` ou `None` |
 | `listar_medicos()` | `list[Medico]`; ordenada por ID |
 | `chamar_proximo()` | `Atendimento`; indisponibilidade gera `ValueError`, preservando filas |
+| `buscar_atendimento(id)` | `Atendimento` ou `None` |
 | `concluir_atendimento(id)` | `Atendimento` encerrado; não permite conclusão repetida |
 | `cancelar_paciente(id)` | `Paciente` cancelado; se ativo, encerra vínculo e libera médico |
-| `listar_atendimentos_ativos()` | `list[Atendimento]` filtrada por Em atendimento |
-| `listar_historico()` | `list[Atendimento]` encerrados, ordenada por início e ID |
+| `cancelar_atendimento(id)` | `Atendimento` cancelado; libera o médico e preserva seu contador |
+| `listar_atendimentos_ativos()` | `list[Atendimento]` em andamento, ordenada por início e ID |
+| `listar_historico(medico_id=None)` | `list[Atendimento]` encerrados, ordenada por início e ID, com filtro opcional por médico |
 | `listar_chegadas()` | `list[Paciente]` de todos os estados, ordenada por chegada e ID |
-| `obter_indicadores()` | Dados de pacientes por estado e totais concluídos por médico |
+| `obter_indicadores()` | `dict[str, int]` com os totais de pacientes nas chaves `aguardando`, `em_atendimento`, `concluido` e `cancelado`, incluindo situações com zero |
+| `resumo_painel(fuso)` | Totais acumulados por situação, conclusões na data local, médicos disponíveis, até cinco pacientes por prioridade, próximo paciente e médico elegível |
+| `inspecionar_indices()` | `dict` com a leitura validada da árvore, dos dois heaps e da Hash de pacientes, usada na página **Estruturas**. Inconsistência gera `ValueError`. |
 | `validar_indices()` | `None`; inconsistência gera `ValueError` |
 
 Operações de alteração com ID inexistente geram `KeyError`; dados ou transições
 inválidas geram `ValueError`. As views traduzem esses erros em mensagens para o
 operador. Erros inesperados não podem ser apresentados como sucesso.
-Os formatos de apresentação de indicadores serão definidos com o front;
-não devem se tornar um cadastro paralelo que substitua os índices.
+Os indicadores por paciente são calculados sobre a Hash de cadastros.
+As conclusões do dia usam a data de encerramento no fuso informado.
+Os totais por médico pertencem a cada `Medico` e aparecem na página **Médicos**.
 
 A lista cronológica histórica pode ordenar uma lista auxiliar obtida do cadastro,
 com custo O(n log n), pois os encerrados não estão na árvore de espera. Esse uso
@@ -199,8 +210,9 @@ auxiliar não substitui a árvore na listagem da fila nem o Heap na chamada.
 
 Cadastro valida, gera ID, cria um único paciente e inclui na Hash, árvore e Heap.
 Reclassificação consulta a Hash, verifica Aguardando, altera a prioridade e chama
-`heap.atualizar(id)`. ID e chegada permanecem iguais. O serviço deve restaurar
-registro e índices se uma etapa falhar.
+`heap.atualizar(id)`. ID e chegada permanecem iguais. Em uma falha no Heap,
+ele recupera o vetor e a Hash de posições. O serviço desfaz o cadastro e a
+inserção na árvore ou restaura a prioridade anterior, conforme a operação.
 
 ### Chamada
 
@@ -281,6 +293,7 @@ classDiagram
         +str nome
         +datetime chegada
         +int prioridade
+        +str ficha
         +SituacaoPaciente situacao
         +reclassificar(prioridade)
         +iniciar_atendimento()

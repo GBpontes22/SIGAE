@@ -40,6 +40,9 @@
 .indicador-icone .icone { width: 65%; height: 65%; }
 .indicador dt { font-size: clamp(.79rem, 1.17vw, 1.11rem); font-weight: 690; line-height: 1.24; }
 .indicador dd { margin: .16rem 0 0; font-size: clamp(1.65rem, 3vw, 2.65rem); font-weight: 790; line-height: 1.13; font-variant-numeric: tabular-nums; }
+.indicador-total { grid-column: span 2; min-height: 0; padding-block: .65rem; }
+.indicador-total .indicador-icone { width: 2.85rem; height: 2.85rem; }
+.indicador-total dd { font-size: clamp(1.65rem, 2.3vw, 2.25rem); }
 
 .painel-grade { display: grid; grid-template-columns: minmax(0, 1.92fr) minmax(0, 1fr); gap: 1rem; margin-bottom: 1.35rem; }
 .painel-grade .painel { margin-bottom: 0; }
@@ -155,6 +158,7 @@
 @media (max-width: 61rem) {
     .painel-grade { grid-template-columns: minmax(0, 1fr); }
     .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .indicador-total { grid-column: auto; }
 }
 
 @media (max-width: 44rem) {
