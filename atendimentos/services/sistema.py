@@ -1,6 +1,7 @@
 from collections import Counter
 from collections.abc import Callable, Iterator
 from contextlib import ExitStack, contextmanager
+from dataclasses import dataclass
 from datetime import UTC, datetime, tzinfo
 from threading import RLock
 
@@ -10,6 +11,19 @@ from ..domain.paciente import Paciente, SituacaoPaciente
 from ..structures.arvore_rubro_negra import ArvoreRubroNegra
 from ..structures.min_heap import MinHeap
 from ..structures.tabela_hash import TabelaHash
+
+
+@dataclass(frozen=True, slots=True)
+class PacienteNaFila:
+    id: int
+    nome: str
+    chegada: datetime
+    prioridade: int
+    situacao: SituacaoPaciente
+
+    @classmethod
+    def de_paciente(cls, paciente: Paciente) -> "PacienteNaFila":
+        return cls(paciente.id, paciente.nome, paciente.chegada, paciente.prioridade, paciente.situacao)
 
 
 class SistemaAtendimento:
@@ -36,11 +50,13 @@ class SistemaAtendimento:
             yield reverter
             reverter.pop_all()
 
-    def cadastrar_paciente(self, nome: str, chegada: datetime, prioridade: int) -> Paciente:
+    def cadastrar_paciente(
+        self, nome: str, chegada: datetime, prioridade: int, ficha: str = "",
+    ) -> Paciente:
         with self._operacao() as reverter:
-            paciente = Paciente(self._proximo_paciente, nome, chegada, prioridade)
+            paciente = Paciente(self._proximo_paciente, nome, chegada, prioridade, ficha)
+            self._pacientes.registrar_reversao(paciente.id, reverter)
             self._pacientes.inserir(paciente.id, paciente)
-            reverter.callback(self._pacientes.remover, paciente.id)
             self._chegadas.inserir(paciente.chave_chegada, paciente)
             reverter.callback(self._chegadas.remover, paciente.chave_chegada)
             self._fila.inserir(paciente)
@@ -63,6 +79,13 @@ class SistemaAtendimento:
         with self._lock:
             return self._fila.consultar_minimo()
 
+    def resumo_triagem(self) -> tuple[tuple[PacienteNaFila, ...], PacienteNaFila | None]:
+        with self._lock:
+            fila = tuple(PacienteNaFila.de_paciente(paciente) for paciente in self._chegadas.em_ordem())
+            raiz = self._fila.consultar_minimo()
+            proximo = PacienteNaFila.de_paciente(raiz) if raiz is not None else None
+            return fila, proximo
+
     def reclassificar_paciente(self, id: int, prioridade: int) -> Paciente:
         with self._operacao() as reverter:
             paciente = self.buscar_paciente(id)
@@ -70,7 +93,6 @@ class SistemaAtendimento:
                 raise KeyError(id)
             anterior = paciente.prioridade
             paciente.reclassificar(prioridade)
-            reverter.callback(self._fila.atualizar, id)
             reverter.callback(paciente.reclassificar, anterior)
             self._fila.atualizar(id)
             return paciente
@@ -78,8 +100,8 @@ class SistemaAtendimento:
     def cadastrar_medico(self, nome: str, registro: str) -> Medico:
         with self._operacao() as reverter:
             medico = Medico(self._proximo_medico, nome, registro)
+            self._medicos.registrar_reversao(medico.id, reverter)
             self._medicos.inserir(medico.id, medico)
-            reverter.callback(self._medicos.remover, medico.id)
             self._disponiveis.inserir(medico)
             self._proximo_medico += 1
             return medico
@@ -221,8 +243,7 @@ class SistemaAtendimento:
             ]
             medicos.sort(key=lambda medico: medico.chave_disponibilidade)
             return {
-                "aguardando": len(self._fila),
-                "em_atendimento": len(self._ativos_por_paciente),
+                **self.obter_indicadores(),
                 "medicos_disponiveis": len(self._disponiveis),
                 "concluidos_hoje": concluidos_hoje,
                 "fila": fila,

@@ -2,6 +2,9 @@ from datetime import UTC, datetime
 from enum import StrEnum
 
 
+LIMITE_FICHA = 2000
+
+
 class SituacaoPaciente(StrEnum):
     AGUARDANDO = "aguardando"
     EM_ATENDIMENTO = "em_atendimento"
@@ -16,6 +19,7 @@ class Paciente:
         nome: str,
         chegada: datetime,
         prioridade: int,
+        ficha: str = "",
     ):
         if type(id) is not int or id <= 0:
             raise ValueError("O ID deve ser um número inteiro positivo.")
@@ -30,11 +34,14 @@ class Paciente:
             raise ValueError("O horário de chegada deve possuir fuso horário.")
 
         self._validar_prioridade(prioridade)
+        if not isinstance(ficha, str) or len(ficha.strip()) > LIMITE_FICHA:
+            raise ValueError(f"A ficha do paciente deve ter até {LIMITE_FICHA} caracteres.")
 
         self._id = id
         self._nome = nome.strip()
         self._chegada = chegada
         self._prioridade = prioridade
+        self._ficha = ficha.strip()
         self._situacao = SituacaoPaciente.AGUARDANDO
 
     @staticmethod
@@ -61,6 +68,10 @@ class Paciente:
     @property
     def situacao(self) -> SituacaoPaciente:
         return self._situacao
+
+    @property
+    def ficha(self) -> str:
+        return self._ficha
 
     @property
     def chave_chegada(self) -> tuple[datetime, int]:

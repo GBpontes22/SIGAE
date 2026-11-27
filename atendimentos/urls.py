@@ -16,5 +16,4 @@ urlpatterns = [
     path("atendimentos/<int:id>/concluir/", views.concluir, name="concluir"),
     path("atendimentos/<int:id>/cancelar/", views.cancelar_atendimento, name="cancelar_atendimento"),
     path("historico/", views.historico, name="historico"),
-    path("estruturas/", views.estruturas, name="estruturas"),
 ]

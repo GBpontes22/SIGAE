@@ -134,6 +134,56 @@ class SistemaTests(TestCase):
         self.assertEqual(len(self.sistema.listar_fila()), 5)
         self.sistema.validar_indices()
 
+    def test_falha_durante_troca_no_heap_reverte_cadastro_e_permite_repetir(self):
+        anteriores = [self._paciente(f"Paciente {n}", 4) for n in range(8)]
+        fila = self.sistema._fila
+        vetor = fila.em_ordem_de_posicao()
+        capacidade = fila._posicoes.capacidade
+        cadastro = self.sistema._pacientes.chaves_por_bucket()
+        atualizar = fila._posicoes.atualizar
+        chamadas = count()
+
+        def falhar_depois_da_gravacao(id, posicao):
+            atualizar(id, posicao)
+            if next(chamadas) == 2:
+                raise RuntimeError("falha após atualizar a posição")
+
+        with patch.object(fila._posicoes, "atualizar", side_effect=falhar_depois_da_gravacao):
+            with self.assertRaisesRegex(RuntimeError, "falha após atualizar a posição"):
+                self._paciente("Cadastro parcial", 1)
+
+        self.assertEqual(fila.em_ordem_de_posicao(), vetor)
+        self.assertEqual(fila._posicoes.capacidade, capacidade)
+        self.assertEqual(self.sistema._pacientes.chaves_por_bucket(), cadastro)
+        self.assertIsNone(fila.buscar(9))
+        self.assertIsNone(self.sistema.buscar_paciente(9))
+        self.assertEqual(self.sistema.listar_fila(), anteriores)
+        self.sistema.validar_indices()
+
+        novo = self._paciente("Cadastro repetido", 1)
+        self.assertEqual(novo.id, 9)
+        self.assertIs(self.sistema.proximo_paciente(), novo)
+        self.sistema.validar_indices()
+
+    def test_falha_durante_reclassificacao_preserva_prioridade_e_indices(self):
+        primeiro = self._paciente("Primeiro", 3)
+        segundo = self._paciente("Segundo", 4)
+        fila = self.sistema._fila
+        atualizar = fila._posicoes.atualizar
+
+        def falhar_depois_da_gravacao(id, posicao):
+            atualizar(id, posicao)
+            raise RuntimeError("falha persistente durante a troca")
+
+        with patch.object(fila._posicoes, "atualizar", side_effect=falhar_depois_da_gravacao) as falha:
+            with self.assertRaisesRegex(RuntimeError, "falha persistente"):
+                self.sistema.reclassificar_paciente(segundo.id, 1)
+            falha.assert_called_once()
+
+        self.assertEqual(segundo.prioridade, 4)
+        self.assertIs(self.sistema.proximo_paciente(), primeiro)
+        self.sistema.validar_indices()
+
     def test_falha_no_cancelamento_restaura_espera_e_atendimento_ativo(self):
         aguardando = self._paciente("Na fila", 4)
         ativo = self._paciente("Em atendimento", 1)

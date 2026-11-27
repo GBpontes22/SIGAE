@@ -23,6 +23,7 @@
         </form>
         {% if encontrado %}
             <p class="destaque">{{ encontrado.nome }} <span class="identificador">#{{ encontrado.id }}</span></p>
+            <p>{{ encontrado.registro }}</p>
             <p><span class="estado {{ encontrado.situacao }}">{{ encontrado.situacao|situacao }}</span> · {{ encontrado.total_concluidos }} concluído{{ encontrado.total_concluidos|pluralize }}</p>
         {% elif consulta.cleaned_data.id %}
             <p class="vazio">Médico não encontrado.</p>
@@ -34,7 +35,7 @@
     {% if medicos %}
         <div class="tabela-conteiner" role="region" aria-label="Equipe clínica" tabindex="0">
             <table>
-                <thead><tr><th scope="col">ID</th><th scope="col">Médico</th><th scope="col">Registro</th><th scope="col">Situação</th><th scope="col">Concluídos</th><th scope="col">Última atribuição</th></tr></thead>
+                <thead><tr><th scope="col">ID</th><th scope="col">Médico</th><th scope="col">Registro profissional</th><th scope="col">Situação</th><th scope="col">Concluídos</th><th scope="col">Última atribuição</th></tr></thead>
                 <tbody>
                 {% for medico in medicos %}
                     <tr>

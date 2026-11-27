@@ -31,9 +31,7 @@ def _consulta(request, buscar):
 def pacientes(request):
     form = PacienteForm(request.POST if request.method == "POST" else None)
     if form.is_valid():
-        paciente = _sistema.cadastrar_paciente(
-            form.cleaned_data["nome"], timezone.now(), form.cleaned_data["prioridade"],
-        )
+        paciente = _sistema.cadastrar_paciente(chegada=timezone.now(), **form.cleaned_data)
         messages.success(request, f"Paciente #{paciente.id} cadastrado.")
         return redirect("atendimentos:pacientes")
 
@@ -61,22 +59,11 @@ def medicos(request):
 
 @require_safe
 def triagem(request):
+    fila, proximo = _sistema.resumo_triagem()
     return render(request, "atendimentos/triagem.html", {
-        "fila": _sistema.listar_fila(),
-        "proximo": _sistema.proximo_paciente(),
+        "fila": fila,
+        "proximo": proximo,
         "prioridades": PRIORIDADES,
-    })
-
-
-@require_http_methods(["GET", "HEAD", "POST"])
-def estruturas(request):
-    try:
-        indices = _sistema.inspecionar_indices()
-    except ValueError as erro:
-        return render(request, "atendimentos/estruturas.html", {"erro": str(erro)}, status=500)
-    return render(request, "atendimentos/estruturas.html", {
-        "indices": indices,
-        "validado": request.method == "POST",
     })
 
 

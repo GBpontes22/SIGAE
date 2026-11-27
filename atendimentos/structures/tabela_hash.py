@@ -1,3 +1,4 @@
+from contextlib import ExitStack
 from typing import Generic
 
 from ..contratos import Valor
@@ -72,6 +73,20 @@ class TabelaHash(Generic[Valor]):
         _, valor = bucket.pop(posicao)
         self._quantidade -= 1
         return valor
+
+    def registrar_reversao(self, chave: int, reverter: ExitStack) -> None:
+        """Guarda só o bucket afetado e recupera a tabela anterior se houver rehash."""
+        bucket, _ = self._localizar(chave)
+        buckets = self._buckets
+        registros = bucket.copy()
+        quantidade = self._quantidade
+
+        def restaurar() -> None:
+            bucket[:] = registros
+            self._buckets = buckets
+            self._quantidade = quantidade
+
+        reverter.callback(restaurar)
 
     def listar_valores(self) -> list[Valor]:
         return [valor for bucket in self._buckets for _, valor in bucket]

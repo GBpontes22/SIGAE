@@ -20,11 +20,11 @@ Os cadastros, filas, atendimentos e contadores ficam em memória, compartilhados
 ## Demonstração
 
 1. Em **Médicos**, cadastre A, B e C com registros fictícios.
-2. Cadastre quatro pacientes com riscos diferentes. Em **Triagem e fila**, a tabela segue a ordem de chegada. O cartão de próximo paciente segue a prioridade e muda após uma reclassificação.
+2. Cadastre quatro pacientes com riscos diferentes. Preencha a ficha de um deles e confira o texto na consulta por ID em **Pacientes**. Em **Triagem e fila**, a tabela segue a ordem de chegada e o cartão destaca a raiz do heap na mesma leitura. Uma reclassificação pode mudar quem será chamado primeiro.
 3. Faça três chamadas e confirme as atribuições. A quarta deve manter o próximo paciente na fila enquanto os três médicos estiverem ocupados.
 4. Conclua um atendimento e cancele outro. Confira os contadores e chame o próximo paciente. Entre os disponíveis, o médico com menos conclusões tem preferência. Empates usam a atribuição mais antiga e depois o menor ID.
-5. Confira os encerramentos e o filtro por médico em **Histórico**, e os totais por situação no **Painel geral**.
-6. Em **Estruturas**, confira os nós da árvore, as raízes dos heaps e os buckets da Hash da sessão. Use **Validar índices** após uma alteração da fila.
+5. Confira os encerramentos e o filtro por médico em **Histórico**. O **Painel geral** mostra os totais acumulados de pacientes por situação, as conclusões do dia no fuso configurado e os médicos disponíveis. O total de cancelados inclui pacientes cancelados na espera e durante o atendimento.
+6. Execute os testes para conferir os invariantes da árvore, dos heaps e da Hash.
 
 ## Testes e documentação
 

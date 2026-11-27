@@ -46,6 +46,7 @@ class ContratoHeap(Protocol[Registro]):
     IDs duplicados geram ValueError. Remover/atualizar ID ausente gera KeyError.
     A implementação mantém ID -> posição em uma Hash própria, sem varredura.
     O comparador deve produzir a chave de pacientes ou de médicos disponíveis.
+    Uma falha de inserção, remoção ou reorganização preserva o vetor e as posições.
     """
 
     def inserir(self, item: Registro) -> None: ...
