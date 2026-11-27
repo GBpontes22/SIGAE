@@ -39,13 +39,28 @@ class SistemaAtendimento:
     def cadastrar_paciente(self, nome: str, chegada: datetime, prioridade: int) -> Paciente:
         with self._operacao() as reverter:
             paciente = Paciente(self._proximo_paciente, nome, chegada, prioridade)
-            self._pacientes.inserir(paciente.id, paciente)
-            reverter.callback(self._pacientes.remover, paciente.id)
-            self._chegadas.inserir(paciente.chave_chegada, paciente)
-            reverter.callback(self._chegadas.remover, paciente.chave_chegada)
-            self._fila.inserir(paciente)
+            self._inserir_paciente(paciente, reverter)
             self._proximo_paciente += 1
             return paciente
+
+    def _inserir_paciente(self, paciente: Paciente, reverter: ExitStack) -> None:
+        self._pacientes.inserir(paciente.id, paciente)
+        reverter.callback(self._pacientes.remover, paciente.id)
+        self._chegadas.inserir(paciente.chave_chegada, paciente)
+        reverter.callback(self._chegadas.remover, paciente.chave_chegada)
+        self._fila.inserir(paciente)
+        reverter.callback(self._fila.remover, paciente.id)
+
+    def demonstrar_colisao(self) -> tuple[int, int, int]:
+        with self._operacao() as reverter:
+            capacidade = self._pacientes.capacidade_para(2)
+            primeiro_id = self._proximo_paciente
+            segundo_id = primeiro_id + capacidade
+            chegada = self._relogio()
+            self._inserir_paciente(Paciente(primeiro_id, "Paciente fictício A", chegada, 5), reverter)
+            self._inserir_paciente(Paciente(segundo_id, "Paciente fictício B", chegada, 5), reverter)
+            self._proximo_paciente = segundo_id + 1
+            return primeiro_id, segundo_id, primeiro_id % capacidade
 
     def buscar_paciente(self, id: int) -> Paciente | None:
         with self._lock:

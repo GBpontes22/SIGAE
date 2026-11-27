@@ -126,11 +126,21 @@ def cancelar_paciente(request, id):
             "triagem",
         )
 
+
     def cancelar():
         paciente = _sistema.cancelar_paciente(id)
         return f"Paciente #{paciente.id} cancelado."
 
     return _executar(request, "triagem", cancelar)
+
+
+@require_POST
+def demonstrar_colisao(request):
+    def cadastrar():
+        primeiro, segundo, bucket = _sistema.demonstrar_colisao()
+        return f"Pacientes fictícios #{primeiro} e #{segundo} foram cadastrados no bucket {bucket}."
+
+    return _executar(request, "estruturas", cadastrar)
 
 
 @require_POST

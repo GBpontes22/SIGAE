@@ -16,11 +16,22 @@ A página **Estruturas** mostra os dados de uma leitura consistente da sessão, 
 
 ## Evidências
 
-O comando `python manage.py test --verbosity 2` executa a suíte reproduzível. Na verificação local, os 33 testes passaram.
+O comando `python manage.py test --verbosity 2` executa a suíte reproduzível. Na verificação local, os 35 testes passaram.
 
 - `test_estruturas.py` cobre colisões, redimensionamento, mudanças de prioridade no heap e as invariantes da árvore após inserções e remoções.
 - `test_sistema.py` cobre três médicos, desempates, indisponibilidade, reclassificação, chamadas concorrentes e falhas intermediárias. Também testa a reversão de falhas ao cancelar um paciente aguardando e um atendimento ativo.
-- `test_fluxo_web.py` cobre formulários, chamada, histórico, confirmação de cancelamento, CSRF e exibição e validação dos índices.
+- `test_fluxo_web.py` cobre formulários, chamada, histórico, confirmação de cancelamento, CSRF e demonstração de colisão com redimensionamento e consulta dos dois pacientes pela interface.
 - `test_paciente.py` cobre as regras do paciente e a ordenação quando o horário local se repete.
+
+## Critérios de aceitação da defesa
+
+| Critério | Pontos | Cenário e evidência |
+| --- | --- | --- |
+| Árvore Rubro-Negra | 1,5 | Inserir e remover com horários empatados. Conferir busca, percurso ordenado, raiz preta, ausência de nós vermelhos adjacentes e mesma altura preta em cada ramo. `test_estruturas.py` |
+| Heap Binário | 2,0 | Subir e descer a prioridade de um paciente. Na chamada, respeitar risco, chegada e ID. Entre médicos disponíveis, usar conclusões, atribuição mais antiga e ID. `test_estruturas.py`, `test_sistema.py` e `test_fluxo_web.py` |
+| Tabela Hash | 1,0 | Colidir dois IDs, consultar ambos e repetir a consulta após redimensionamento. No navegador, conferir o bucket e abrir os dois cadastros pelos links. `test_estruturas.py` e `test_fluxo_web.py` |
+| Integração | 1,5 | Chamar com todos os médicos ocupados, repetir uma conclusão, cancelar em espera e em atendimento, e conferir vínculos e contadores. Exercitar chamadas concorrentes e falhas intermediárias. `test_sistema.py` e `test_fluxo_web.py` |
+| Interface web e usabilidade | 1,0 | Exercitar formulários, mensagens de erro, confirmação de cancelamento e filtro de histórico. As seis áreas obrigatórias e a tela Estruturas renderizaram no Chrome a 390 px sem rolagem horizontal da página. `test_views.py` e `test_fluxo_web.py` |
+| Testes, documentação e defesa | 1,0 | Executar a suíte pelo README e seguir o [roteiro de defesa](roteiro-defesa.md) com dados fictícios. A explicação e a operação dos cenários cabem ao grupo durante a apresentação. |
 
 A instalação pelo README foi repetida em uma cópia limpa neste computador. O roteiro também foi executado com dados fictícios em um servidor HTTP isolado. A demonstração usa uma sessão em memória por processo.

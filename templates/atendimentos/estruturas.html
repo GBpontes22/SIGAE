@@ -43,6 +43,11 @@
 
     <section class="painel">
         <h2>Tabela Hash de pacientes</h2>
+        <form method="post" action="{% url 'atendimentos:demonstrar_colisao' %}">
+            {% csrf_token %}
+            <p class="muted">Adiciona dois pacientes fictícios à fila. Clique nos IDs do bucket para consultá-los.</p>
+            <button class="botao" type="submit">Demonstrar colisão</button>
+        </form>
         <dl class="hash-resumo">
             <div><dt>Capacidade</dt><dd>{{ indices.capacidade_hash }}</dd></div>
             <div><dt>Registros</dt><dd>{{ indices.registros_hash }}</dd></div>
@@ -53,7 +58,7 @@
                 <li{% if chaves|length > 1 %} class="hash-colisao"{% endif %}>
                     <strong>Bucket {{ forloop.counter0 }}</strong>
                     {% if chaves|length > 1 %}<span class="hash-status">Colisão</span>{% endif %}
-                    <span>{% for id in chaves %}#{{ id }}{% if not forloop.last %}, {% endif %}{% empty %}Vazio{% endfor %}</span>
+                    <span>{% for id in chaves %}<a href="{% url 'atendimentos:pacientes' %}?id={{ id }}">#{{ id }}</a>{% if not forloop.last %}, {% endif %}{% empty %}Vazio{% endfor %}</span>
                 </li>
             {% endfor %}
         </ul>
