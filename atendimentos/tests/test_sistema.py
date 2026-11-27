@@ -14,7 +14,7 @@ class SistemaTests(TestCase):
     def setUp(self):
         self.agora = datetime(2026, 11, 26, 8, tzinfo=UTC)
         segundos = count()
-        self.sistema = SistemaAtendimento(lambda: self.agora + timedelta(seconds=next(segundos)))
+        self.sistema = SistemaAtendimento(lambda: self.agora + timedelta(hours=1, seconds=next(segundos)))
         self.medicos = [self.sistema.cadastrar_medico(nome, f"SIM-{nome}") for nome in ("A", "B", "C")]
 
     def _paciente(self, nome, prioridade=3, minutos=0):
@@ -216,3 +216,35 @@ class SistemaTests(TestCase):
         self.assertEqual(medico.total_concluidos, 0)
         self.assertEqual(self.sistema.listar_historico(), [atendimento])
         self.sistema.validar_indices()
+
+    def test_falha_depois_da_insercao_no_heap_restaura_cadastro(self):
+        anterior = self._paciente("Anterior", 4)
+        inserir = self.sistema._fila.inserir
+
+        def falhar(paciente):
+            inserir(paciente)
+            raise RuntimeError("Falha após inserção")
+
+        with patch.object(self.sistema._fila, "inserir", side_effect=falhar):
+            with self.assertRaisesRegex(RuntimeError, "após inserção"):
+                self._paciente("Urgente", 1)
+        self.assertIsNone(self.sistema.buscar_paciente(anterior.id + 1))
+        self.assertIs(self.sistema.proximo_paciente(), anterior)
+        self.assertEqual(self.sistema.listar_fila(), [anterior])
+        self.sistema.validar_indices()
+        novo = self._paciente("Urgente", 1)
+        self.assertIs(self.sistema.proximo_paciente(), novo)
+        self.sistema.validar_indices()
+
+    def test_chamada_anterior_a_chegada_preserva_fila_e_medico(self):
+        paciente = self._paciente("Aguardando", minutos=2)
+        with patch.object(self.sistema, "_relogio", return_value=self.agora):
+            with self.assertRaisesRegex(ValueError, "anteceder a chegada"):
+                self.sistema.chamar_proximo()
+        self.assertEqual(self.sistema.listar_fila(), [paciente])
+        self.assertEqual(self.sistema.listar_atendimentos_ativos(), [])
+        self.sistema.validar_indices()
+        with patch.object(self.sistema, "_relogio", return_value=paciente.chegada):
+            atendimento = self.sistema.chamar_proximo()
+        self.assertIs(atendimento.medico, self.medicos[0])
+        self.assertIs(atendimento.paciente, paciente)

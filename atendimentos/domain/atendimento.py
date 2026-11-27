@@ -17,6 +17,8 @@ class Atendimento:
             raise ValueError("O ID do atendimento deve ser um inteiro positivo.")
         if not isinstance(inicio, datetime) or inicio.utcoffset() is None:
             raise ValueError("O início do atendimento deve possuir data, hora e fuso.")
+        if inicio.astimezone(UTC) < paciente.chegada.astimezone(UTC):
+            raise ValueError("O início não pode anteceder a chegada do paciente.")
         self._id = id
         self._paciente = paciente
         self._medico = medico

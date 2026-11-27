@@ -62,10 +62,18 @@ class SistemaAtendimento:
     def _inserir_paciente(self, paciente: Paciente, reverter: ExitStack) -> None:
         self._pacientes.registrar_reversao(paciente.id, reverter)
         self._pacientes.inserir(paciente.id, paciente)
+        def desfazer_arvore():
+            if self._chegadas.buscar(paciente.chave_chegada) is paciente:
+                self._chegadas.remover(paciente.chave_chegada)
+
+        def desfazer_heap():
+            if self._fila.buscar(paciente.id) is paciente:
+                self._fila.remover(paciente.id)
+
+        reverter.callback(desfazer_arvore)
         self._chegadas.inserir(paciente.chave_chegada, paciente)
-        reverter.callback(self._chegadas.remover, paciente.chave_chegada)
+        reverter.callback(desfazer_heap)
         self._fila.inserir(paciente)
-        reverter.callback(self._fila.remover, paciente.id)
 
     def demonstrar_colisao(self) -> tuple[int, int, int]:
         with self._operacao() as reverter:
