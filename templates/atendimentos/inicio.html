@@ -1,20 +1,122 @@
 {% extends "atendimentos/base.html" %}
+{% load static apresentacao %}
+
+{% block estilos %}<link rel="stylesheet" href="{% static 'css/painel.css' %}">{% endblock %}
 
 {% block content %}
-<section class="apresentacao" aria-labelledby="titulo">
-    <p class="etiqueta">Projeto em desenvolvimento</p>
-    <h1 id="titulo">Sistema Inteligente de Gerenciamento de Atendimentos de Emergência</h1>
-    <p>A base do projeto está pronta. As operações de pacientes, médicos e atendimentos serão implementadas nas próximas entregas.</p>
-</section>
-<section aria-labelledby="modulos">
-    <h2 id="modulos">Módulos previstos</h2>
-    <ul class="modulos">
-        <li>Painel geral</li>
-        <li>Pacientes</li>
-        <li>Triagem e fila</li>
-        <li>Médicos</li>
-        <li>Atendimentos</li>
-        <li>Histórico</li>
-    </ul>
+<header class="painel-cabecalho">
+    <div>
+        <p class="secao">Central de atendimentos</p>
+        <h1>Painel geral</h1>
+        <p class="descricao">Acompanhe a fila e organize os atendimentos.</p>
+    </div>
+    <a class="botao painel-acao" href="{% url 'atendimentos:pacientes' %}">{% icone "mais" %} Novo paciente</a>
+</header>
+
+<dl class="indicadores" aria-label="Resumo de atendimentos">
+    <div class="indicador">
+        <span class="indicador-icone">{% icone "pacientes" %}</span>
+        <dt>Aguardando</dt>
+        <dd>{{ aguardando }}</dd>
+    </div>
+    <div class="indicador">
+        <span class="indicador-icone">{% icone "estetoscopio" %}</span>
+        <dt>Em atendimento</dt>
+        <dd>{{ em_atendimento }}</dd>
+    </div>
+    <div class="indicador">
+        <span class="indicador-icone">{% icone "medico" %}</span>
+        <dt>Médicos disponíveis</dt>
+        <dd>{{ medicos_disponiveis }}</dd>
+    </div>
+    <div class="indicador">
+        <span class="indicador-icone">{% icone "concluido" %}</span>
+        <dt>Concluídos hoje</dt>
+        <dd>{{ concluidos_hoje }}</dd>
+    </div>
+</dl>
+
+<div class="painel-grade">
+    <section class="painel painel-fila">
+        <header class="painel-fila-cabecalho">
+            <div class="painel-titulo">
+                {% icone "pacientes" %}
+                <div><h2>Fila de espera</h2><p>Ordenada por prioridade</p></div>
+            </div>
+            <a class="link-fila" href="{% url 'atendimentos:triagem' %}">Ver fila completa {% icone "seta" %}</a>
+        </header>
+        <div class="tabela-conteiner" role="region" aria-label="Fila de espera" tabindex="0">
+            <table class="fila-prioridade">
+                <thead>
+                    <tr>
+                        <th scope="col">Paciente</th><th scope="col">Chegada</th>
+                        <th scope="col">Classificação</th><th scope="col">Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for paciente in fila %}
+                        <tr{% if forloop.first %} class="primeiro"{% endif %}>
+                            <th scope="row"><span class="fila-id">#{{ paciente.id }}</span> {{ paciente.nome }}</th>
+                            <td class="data">{{ paciente.chegada|date:"H:i" }}</td>
+                            <td><span class="risco risco-{{ paciente.prioridade }}">P{{ paciente.prioridade|prioridade }}</span></td>
+                            <td><a href="{% url 'atendimentos:pacientes' %}?id={{ paciente.id }}" aria-label="Consultar {{ paciente.nome }}">Consultar</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="4" class="fila-vazia">Nenhum paciente aguardando.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <div class="painel-coluna">
+        <section class="painel painel-chamada">
+            <div class="painel-titulo">{% icone "chamada" %}<h2>Próxima chamada</h2></div>
+            {% if proximo %}
+                <p class="chamada-paciente">{{ proximo.nome }}</p>
+                <p><span class="risco risco-{{ proximo.prioridade }}">P{{ proximo.prioridade|prioridade }}</span></p>
+                <p class="chamada-chegada">Chegada às {{ proximo.chegada|date:"H:i" }}</p>
+            {% else %}
+                <p class="chamada-vazia">Nenhum paciente na fila.</p>
+            {% endif %}
+            <div class="chamada-medico">
+                {% icone "medico" %}
+                <div>
+                    <p class="chamada-label">Médico elegível</p>
+                    {% if medico_elegivel %}
+                        <p class="chamada-medico-nome">{{ medico_elegivel.nome }}</p>
+                        <p>{{ medico_elegivel.total_concluidos }} atendimento{{ medico_elegivel.total_concluidos|pluralize }} concluído{{ medico_elegivel.total_concluidos|pluralize }}</p>
+                    {% else %}
+                        <p class="chamada-medico-nome">Nenhum médico disponível</p>
+                    {% endif %}
+                </div>
+            </div>
+            <form method="post" action="{% url 'atendimentos:chamar' %}">
+                {% csrf_token %}
+                <button type="submit" class="botao painel-acao"{% if not proximo or not medico_elegivel %} disabled{% endif %}>Chamar próximo</button>
+            </form>
+        </section>
+        <p class="chamada-nota">{% icone "info" %}<span>A seleção considera a prioridade do paciente e a disponibilidade médica.</span></p>
+    </div>
+</div>
+
+<section class="painel painel-medicos">
+    <div class="painel-titulo">{% icone "estetoscopio" %}<h2>Médicos disponíveis</h2></div>
+    {% if medicos %}
+        <ul class="medicos-cartoes">
+            {% for medico in medicos %}
+                <li>
+                    {% icone "medico" %}
+                    <div>
+                        <a href="{% url 'atendimentos:medicos' %}?id={{ medico.id }}">{{ medico.nome }}</a>
+                        <p>{{ medico.total_concluidos }} concluído{{ medico.total_concluidos|pluralize }}</p>
+                    </div>
+                    <span class="medico-disponivel">Disponível</span>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="medicos-vazio">Nenhum médico disponível. <a href="{% url 'atendimentos:medicos' %}">Ver equipe médica</a></p>
+    {% endif %}
 </section>
 {% endblock %}

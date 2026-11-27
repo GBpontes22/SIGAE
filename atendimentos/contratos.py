@@ -1,4 +1,4 @@
-"""Interfaces das estruturas; os algoritmos serão implementados separadamente."""
+"""Interfaces das estruturas implementadas em atendimentos.structures."""
 
 from datetime import datetime
 from typing import Protocol, TypeVar

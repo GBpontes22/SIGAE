@@ -2,20 +2,18 @@
 
 ## Escopo e estado da implementação
 
-Este documento define as interfaces e responsabilidades para o SIGAE WEB.
-Não representa a implementação completa do sistema.
+Este documento descreve as interfaces e responsabilidades do SIGAE WEB.
 
-- Existentes: base Django, página inicial, classe `Paciente` e seus testes.
+- Implementados: a interface Django, as entidades `Paciente`, `Medico` e
+  `Atendimento`, as três estruturas e o serviço `SistemaAtendimento`.
 - Contratos: `Identificavel`, `ContratoHash`, `ContratoHeap` e `ContratoArvore`
   em `atendimentos/contratos.py` (Protocols do Python).
-- Planejados: `Medico`, `Atendimento`, `SistemaAtendimento`, `TabelaHash`,
-  `MinHeap` e `ArvoreRubroNegra`.
-- Estado entre requisições: detalhamento e implementação na SIGAE-10.
-- Integração e recuperação de falhas: SIGAE-19 e SIGAE-20.
+- A sessão fica em memória no processo Django. As operações do serviço usam uma
+  trava e registram ações inversas para reverter falhas intermediárias.
 
 Um Protocol descreve métodos e tipos para análise estática. Não implementa
 algoritmos, não verifica regras de negócio em execução e não exige herança
-explícita. Os testes das implementações deverão comprovar os comportamentos.
+explícita. Os testes das implementações verificam os comportamentos.
 
 ## Organização dos arquivos
 
@@ -26,7 +24,7 @@ explícita. Os testes das implementações deverão comprovar os comportamentos.
 | `atendimentos/structures/` | Hash, Heap e Rubro-Negra implementados pela equipe |
 | `atendimentos/services/` | Operações de negócio, coordenação de índices e recuperação de falhas |
 | `atendimentos/contratos.py` | Interfaces das estruturas |
-| `atendimentos/forms.py` | Conversão e validação das entradas web; arquivo futuro |
+| `atendimentos/forms.py` | Conversão e validação das entradas web |
 | `atendimentos/views.py` | Receber requisições, chamar o serviço e renderizar respostas |
 | `templates/atendimentos/` | Templates centralizados |
 | `css/` | Arquivos CSS centralizados na raiz |
@@ -34,8 +32,8 @@ explícita. Os testes das implementações deverão comprovar os comportamentos.
 
 As views não alteram entidades ou índices diretamente. O serviço controla
 as operações completas. Domínio e estruturas não importam views, formulários
-ou modelos do Django. O serviço não é recriado com filas vazias a cada requisição;
-a forma de manter sua instância e eventual persistência será definida na SIGAE-10.
+ou modelos do Django. As requisições usam a mesma instância do serviço no processo.
+Reiniciar o servidor cria uma sessão vazia.
 
 ## Entidades
 
@@ -47,8 +45,8 @@ Campos: `id: int`, `nome: str`, `chegada: datetime`, `prioridade: int`,
 - ID positivo, atribuído pelo serviço; unicidade conferida na Hash.
 - Nome obrigatório; chegada com fuso horário; prioridade inteira de 1 a 5.
 - ID e chegada não mudam enquanto o registro existir.
-- `chave_chegada = (chegada, id)`.
-- `chave_prioridade = (prioridade, chegada, id)`.
+- `chave_chegada = (chegada em UTC, id)`.
+- `chave_prioridade = (prioridade, chegada em UTC, id)`.
 - `reclassificar(prioridade)` só aceita Aguardando.
 - `iniciar_atendimento()`: Aguardando para Em atendimento.
 - `concluir_atendimento()`: Em atendimento para Concluído.
@@ -58,7 +56,7 @@ Campos: `id: int`, `nome: str`, `chegada: datetime`, `prioridade: int`,
 Os métodos da entidade não atualizam estruturas. O serviço deve coordená-los
 com a fila, os vínculos e a recuperação de falhas.
 
-### Medico — planejado
+### Medico
 
 Campos: `id: int`, `nome: str`, `registro: str`, `situacao: SituacaoMedico`,
 `total_concluidos: int`, `ultima_atribuicao: datetime | None`.
@@ -74,7 +72,7 @@ Campos: `id: int`, `nome: str`, `registro: str`, `situacao: SituacaoMedico`,
 O serviço valida o atendimento associado antes de executar esses métodos,
 evitando que uma solicitação antiga encerre uma consulta nova.
 
-### Atendimento — planejado
+### Atendimento
 
 Campos: `id: int`, `paciente: Paciente`, `medico: Medico`,
 `inicio: datetime`, `fim: datetime | None`, `situacao: SituacaoAtendimento`.
@@ -96,6 +94,7 @@ Campos: `id: int`, `paciente: Paciente`, `medico: Medico`,
 | `TabelaHash[Medico]` | Cadastro de todos os médicos |
 | `MinHeap[Medico]` | Referências apenas aos médicos Disponíveis |
 | `TabelaHash[Atendimento]` | Atendimentos ativos e encerrados, consultáveis por ID |
+| Hash de vínculos ativos | ID do paciente para seu atendimento em andamento |
 | Hash interna de cada Heap | ID do item para sua posição na lista do Heap |
 
 Cada paciente possui uma única instância compartilhada pelos índices. Não criar
@@ -134,7 +133,7 @@ As implementações devem rejeitar erros de entrada antes de modificar o estado.
 Os métodos de listagem não permitem que alterar a lista retornada altere os nós ou
 buckets internos; seus elementos continuam sendo referências às entidades.
 
-### Configuração das implementações futuras
+### Configuração das implementações
 
 - `TabelaHash(capacidade=11, fator_carga_maximo=0.75)`: capacidade positiva,
   função `id % capacidade`, encadeamento separado e redimensionamento com rehash.
@@ -146,10 +145,9 @@ buckets internos; seus elementos continuam sendo referências às entidades.
   recolorações e correções são detalhes internos.
 
 Critério de pacientes: `(prioridade, chegada, id)`; menor valor vence.
-Critério de médicos: `(total_concluidos, ultima_atribuicao_ou_minimo, id)`.
-Para nunca atribuídos, usar uma data sentinela anterior às atribuições válidas,
-com fuso UTC. Assim, com contadores iguais, nunca atribuídos precedem os demais;
-entre eles, vence o menor ID. Todas as comparações usam datas com fuso.
+Entre médicos disponíveis, compara-se primeiro o total de conclusões. Em caso
+de empate, médicos sem atribuição anterior vêm primeiro. Para os demais,
+compara-se o instante da última atribuição em UTC. O menor ID desempata.
 
 ### Complexidades esperadas
 
@@ -161,7 +159,7 @@ entre eles, vence o menor ID. Todas as comparações usam datas com fuso.
 - Rubro-Negra: busca, inserção e remoção O(log n); percurso completo O(n).
 - Validações e geração de listagens são operações separadas e podem percorrer índices.
 
-## Serviço central — planejado
+## Serviço central
 
 `SistemaAtendimento` recebe/possui as Hashes, os dois heaps e a árvore.
 Também controla os geradores de IDs de pacientes, médicos e atendimentos.
@@ -175,7 +173,7 @@ Os contadores são crescentes e nunca são calculados pelo tamanho das filas.
 | `reclassificar_paciente(id, prioridade)` | `Paciente`; modifica risco e reorganiza Heap como uma operação |
 | `cadastrar_medico(nome, registro)` | `Medico`; gera ID e inclui cadastro e Heap de disponíveis |
 | `buscar_medico(id)` | `Medico` ou `None` |
-| `listar_medicos()` | `list[Medico]`; sem ordem garantida |
+| `listar_medicos()` | `list[Medico]`; ordenada por ID |
 | `chamar_proximo()` | `Atendimento`; indisponibilidade gera `ValueError`, preservando filas |
 | `concluir_atendimento(id)` | `Atendimento` encerrado; não permite conclusão repetida |
 | `cancelar_paciente(id)` | `Paciente` cancelado; se ativo, encerra vínculo e libera médico |
@@ -237,16 +235,13 @@ Concluídos e cancelados não são encerrados novamente.
 
 ## Diagrama de classes
 
-Abrir `diagrama_classes.drawio` no diagrams.net para editar ou exportar.
-O diagrama apresenta o desenho alvo: Paciente existe; Medico, Atendimento e
-SistemaAtendimento ainda são planejados. As interfaces já estão definidas.
+O diagrama apresenta as entidades, as interfaces e o serviço central.
 Linhas tracejadas representam dependências; linhas contínuas, associações.
 
 ```mermaid
 classDiagram
     direction TB
     class SistemaAtendimento {
-        <<planejado>>
         +cadastrar_paciente()
         +cadastrar_medico()
         +reclassificar_paciente()
@@ -293,7 +288,6 @@ classDiagram
         +cancelar()
     }
     class Medico {
-        <<planejado>>
         +int id
         +str nome
         +str registro
@@ -305,7 +299,6 @@ classDiagram
         +cancelar_atendimento()
     }
     class Atendimento {
-        <<planejado>>
         +int id
         +datetime inicio
         +datetime fim
@@ -327,15 +320,7 @@ retorno futuro à unidade gera novo ID de atendimento/cadastro. O diagrama usa
 essa multiplicidade. Cada médico pode ter vários atendimentos históricos,
 mas no máximo um ativo por vez.
 
-## Aceite da SIGAE-09
+## Verificação
 
-- Responsabilidades e dependências definidas acima.
-- Assinaturas, retornos e erros das estruturas registrados em `contratos.py`.
-- Contratos de entidades e do serviço especificados; implementação futura identificada.
-- Fonte dos registros, referências compartilhadas e invariantes definidos.
-- Diagrama de classes incluído em Markdown e em formato editável draw.io.
-- A equipe deve revisar o acordo antes de integrar implementações. Não registrar
-  essa revisão como realizada sem que os integrantes a tenham feito.
-
-Este cartão não implementa algoritmos, integração, persistência ou recuperação
-de falhas e não comprova os testes das funcionalidades futuras.
+O [relatório técnico](relatorio-tecnico.md) indica onde consultar os testes das
+estruturas, das operações de atendimento e do fluxo pelo navegador.

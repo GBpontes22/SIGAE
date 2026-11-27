@@ -1,0 +1,166 @@
+.painel-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .85rem;
+    margin: 0 .25rem 1.8rem 1.05rem;
+}
+.painel-cabecalho h1 { font-size: clamp(2rem, 3.2vw, 3rem); line-height: 1.08; font-weight: 780; }
+.secao { margin-bottom: .38rem; color: var(--accent); font-size: clamp(.82rem, 1.3vw, 1.19rem); font-weight: 780; text-transform: uppercase; }
+.descricao { margin-top: .42rem; color: var(--muted); font-size: clamp(1rem, 1.42vw, 1.3rem); }
+.painel-acao { gap: .55rem; padding: .63rem 1.25rem; border-radius: .62rem; font-size: clamp(.96rem, 1.28vw, 1.15rem); }
+.painel-acao .icone { width: 1.58rem; height: 1.58rem; }
+
+.indicadores { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: .95rem; margin: 0 0 1.7rem; }
+.indicador {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-content: center;
+    align-items: center;
+    column-gap: clamp(.55rem, 1.2vw, 1.15rem);
+    min-height: clamp(5.1rem, 8vw, 7rem);
+    padding: clamp(.65rem, 1.35vw, 1.2rem);
+    border: 1px solid var(--line);
+    border-radius: .82rem;
+    background: var(--surface);
+    box-shadow: 0 .2rem .5rem #5c362007;
+}
+.indicador-icone {
+    grid-row: span 2;
+    display: grid;
+    place-items: center;
+    width: clamp(2.15rem, 4.4vw, 4rem);
+    height: clamp(2.15rem, 4.4vw, 4rem);
+    border-radius: .72rem;
+    background: #f9e7e8;
+    color: var(--accent);
+}
+.indicador-icone .icone { width: 65%; height: 65%; }
+.indicador dt { font-size: clamp(.79rem, 1.17vw, 1.11rem); font-weight: 690; line-height: 1.24; }
+.indicador dd { margin: .16rem 0 0; font-size: clamp(1.65rem, 3vw, 2.65rem); font-weight: 790; line-height: 1.13; font-variant-numeric: tabular-nums; }
+
+.painel-grade { display: grid; grid-template-columns: minmax(0, 1.92fr) minmax(0, 1fr); gap: 1rem; margin-bottom: 1.35rem; }
+.painel-grade .painel { margin-bottom: 0; }
+.painel-fila, .painel-chamada, .painel-medicos { box-shadow: 0 .22rem .55rem #5c36200a; }
+.painel-fila { padding: clamp(.65rem, 1.25vw, 1.05rem); }
+.painel-fila-cabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: .65rem;
+    padding-inline: .48rem;
+    margin-bottom: 1.35rem;
+}
+.painel-titulo { display: flex; align-items: center; gap: clamp(.48rem, 1.1vw, 1rem); }
+.painel-titulo > .icone { width: clamp(1.55rem, 2.55vw, 2.25rem); height: clamp(1.55rem, 2.55vw, 2.25rem); color: var(--accent); }
+.painel-titulo h2 { margin: 0; font-size: clamp(1.17rem, 2vw, 1.7rem); font-weight: 760; line-height: 1.18; letter-spacing: -.03em; }
+.painel-titulo p { margin-top: .08rem; color: var(--muted); font-size: clamp(.87rem, 1.28vw, 1.13rem); }
+.link-fila { display: inline-flex; align-items: center; gap: .25rem; white-space: nowrap; }
+.link-fila .icone { width: .98rem; height: .98rem; }
+
+.fila-prioridade { border-collapse: separate; border-spacing: 0; font-size: clamp(.89rem, 1.25vw, 1.12rem); }
+.fila-prioridade th, .fila-prioridade td { padding: clamp(.58rem, 1vw, .92rem) clamp(.58rem, 1.15vw, 1rem); }
+.fila-prioridade thead th { color: #44383a; background: #f2ebe4; font-size: .95em; }
+.fila-prioridade thead th:first-child, .fila-prioridade .primeiro th { border-radius: .48rem 0 0 .48rem; }
+.fila-prioridade thead th:last-child, .fila-prioridade .primeiro td:last-child { border-radius: 0 .48rem .48rem 0; }
+.fila-prioridade .primeiro > * { background: #fbe6e7; }
+.fila-prioridade tbody tr:last-child > * { border-bottom: 1px solid var(--line); }
+.fila-id { margin-right: .36em; color: var(--muted); font-weight: 550; white-space: nowrap; }
+.fila-prioridade td a { text-decoration: none; }
+.fila-prioridade td a:hover { text-decoration: underline; }
+.fila-prioridade .fila-vazia { padding-block: 1.4rem; color: var(--muted); }
+.painel-grade .risco { border-radius: 2rem; padding: .22rem .78rem; font-size: .93em; }
+.painel-grade .risco-1 { color: #8c2028; background: #f9c9cc; }
+.painel-grade .risco-2 { color: #7e350d; background: #fbd9bf; }
+.painel-grade .risco-3 { color: #765008; background: #faeac2; }
+.painel-grade .risco-4 { color: #305532; background: #e2efda; }
+.painel-grade .risco-5 { color: #254c73; background: #dceafa; }
+
+.painel-coluna { display: grid; align-content: start; gap: .7rem; min-width: 0; }
+.painel-chamada { padding: clamp(.85rem, 1.4vw, 1.18rem); }
+.chamada-paciente { margin-top: 1.2rem; font-size: clamp(1.5rem, 2.35vw, 2.1rem); font-weight: 790; line-height: 1.15; overflow-wrap: anywhere; }
+.chamada-chegada, .chamada-vazia, .chamada-label { color: var(--muted); }
+.chamada-chegada, .chamada-vazia { font-size: clamp(.98rem, 1.35vw, 1.2rem); }
+.chamada-vazia { margin-top: 1.15rem; }
+.chamada-medico {
+    display: flex;
+    gap: .9rem;
+    align-items: flex-start;
+    margin: 1rem 0 1.25rem;
+    padding: 1rem 0 0;
+    border-top: 1px solid var(--line);
+    line-height: 1.35;
+}
+.chamada-medico > .icone { width: 2rem; height: 2rem; margin-top: .25rem; color: var(--accent); }
+.chamada-medico p + p { margin-top: .16rem; }
+.chamada-medico-nome { font-size: clamp(.96rem, 1.35vw, 1.19rem); font-weight: 750; overflow-wrap: anywhere; }
+.painel-chamada .botao { width: 100%; }
+.chamada-nota {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    margin: 0;
+    padding: .75rem .95rem;
+    border: 1px solid #eadcc7;
+    border-radius: .7rem;
+    background: #f7eee0;
+    color: #514435;
+    font-size: .93rem;
+    line-height: 1.38;
+}
+.chamada-nota .icone { width: 1.4rem; height: 1.4rem; color: #885819; }
+
+.painel-medicos { padding: clamp(.85rem, 1.35vw, 1.18rem); }
+.medicos-cartoes {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .9rem;
+    list-style: none;
+    margin: 1.25rem 0 0;
+    padding: 0;
+}
+.medicos-cartoes li {
+    display: flex;
+    align-items: center;
+    gap: clamp(.45rem, 1vw, .9rem);
+    padding: .85rem clamp(.65rem, 1.05vw, 1rem);
+    border: 1px solid var(--line);
+    border-radius: .68rem;
+    overflow-wrap: anywhere;
+}
+.medicos-cartoes li > .icone { width: clamp(1.45rem, 2.55vw, 2.05rem); height: clamp(1.45rem, 2.55vw, 2.05rem); color: var(--accent); }
+.medicos-cartoes a { color: inherit; font-size: clamp(.98rem, 1.3vw, 1.16rem); font-weight: 730; text-decoration: none; }
+.medicos-cartoes a:hover { text-decoration: underline; }
+.medicos-cartoes p { color: var(--muted); }
+.medico-disponivel {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    margin-left: auto;
+    color: #394939;
+    font-size: .87rem;
+    white-space: nowrap;
+}
+.medico-disponivel::before { width: .66rem; height: .66rem; flex: none; border-radius: 50%; background: #73a572; content: ""; }
+.medicos-vazio { margin-top: .7rem; color: var(--muted); }
+
+@media (max-width: 69rem) {
+    .medico-disponivel { font-size: .75rem; }
+    .medicos-cartoes li { flex-wrap: wrap; }
+}
+
+@media (max-width: 61rem) {
+    .painel-grade { grid-template-columns: minmax(0, 1fr); }
+    .indicadores { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 44rem) {
+    .painel-cabecalho { margin-left: .15rem; margin-bottom: 1rem; }
+    .indicadores { gap: .55rem; margin-bottom: 1rem; }
+    .painel-fila-cabecalho { margin-bottom: .8rem; }
+    .medicos-cartoes { grid-template-columns: minmax(0, 1fr); gap: .55rem; margin-top: .8rem; }
+    .medico-disponivel { font-size: .84rem; }
+}

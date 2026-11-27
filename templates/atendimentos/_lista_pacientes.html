@@ -1,0 +1,41 @@
+{% load apresentacao %}
+{% if pacientes %}
+<div class="tabela-conteiner" role="region" aria-label="{{ rotulo_tabela }}" tabindex="0">
+    <table>
+        <thead>
+            <tr>
+                <th scope="col">ID</th><th scope="col">Paciente</th><th scope="col">Chegada</th>
+                <th scope="col">Risco</th><th scope="col">Situação</th>
+                {% if acoes %}<th scope="col">Ações</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for paciente in pacientes %}
+            <tr>
+                <td class="identificador">#{{ paciente.id }}</td>
+                <th scope="row">{{ paciente.nome }}</th>
+                <td class="data">{{ paciente.chegada|date:"d/m/Y H:i:s" }}</td>
+                <td><span class="risco risco-{{ paciente.prioridade }}">{{ paciente.prioridade|prioridade }}</span></td>
+                <td><span class="estado {{ paciente.situacao }}">{{ paciente.situacao|situacao }}</span></td>
+                {% if acoes %}
+                    <td class="acoes">
+                        <form method="post" action="{% url 'atendimentos:reclassificar' paciente.id %}" class="form-linha">
+                            {% csrf_token %}
+                            <select name="prioridade" aria-label="Novo risco de {{ paciente.nome }}">
+                                {% for valor, descricao in prioridades %}
+                                    <option value="{{ valor }}"{% if paciente.prioridade == valor %} selected{% endif %}>{{ descricao }}</option>
+                                {% endfor %}
+                            </select>
+                            <button class="botao secundario compacto" type="submit">Reclassificar</button>
+                        </form>
+                        <a class="botao perigo compacto" href="{% url 'atendimentos:cancelar_paciente' paciente.id %}" aria-label="Cancelar paciente {{ paciente.nome }}">Cancelar</a>
+                    </td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    <p class="vazio">{{ sem_registros }}</p>
+{% endif %}

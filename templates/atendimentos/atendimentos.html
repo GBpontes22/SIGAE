@@ -1,0 +1,40 @@
+{% extends "atendimentos/base.html" %}
+{% load apresentacao %}
+
+{% block title %}Atendimentos · SIGAE WEB{% endblock %}
+{% block content %}
+<section class="pagina-cabecalho">
+    <div><h1>Atendimentos</h1><p>Acompanhe as atribuições ativas e registre seu encerramento.</p></div>
+    <a class="botao secundario" href="{% url 'atendimentos:triagem' %}">Ir para a fila</a>
+</section>
+<section class="painel">
+    <h2>Em andamento</h2>
+    {% if ativos %}
+        <div class="tabela-conteiner" role="region" aria-label="Atendimentos em andamento" tabindex="0">
+            <table>
+                <thead><tr><th scope="col">ID</th><th scope="col">Paciente</th><th scope="col">Médico</th><th scope="col">Início</th><th scope="col">Situação</th><th scope="col">Ações</th></tr></thead>
+                <tbody>
+                {% for atendimento in ativos %}
+                    <tr>
+                        <td class="identificador">#{{ atendimento.id }}</td>
+                        <th scope="row">{{ atendimento.paciente.nome }}</th>
+                        <td>{{ atendimento.medico.nome }}</td>
+                        <td class="data">{{ atendimento.inicio|date:"d/m/Y H:i:s" }}</td>
+                        <td><span class="estado {{ atendimento.situacao }}">{{ atendimento.situacao|situacao }}</span></td>
+                        <td class="acoes">
+                            <form method="post" action="{% url 'atendimentos:concluir' atendimento.id %}">
+                                {% csrf_token %}
+                                <button class="botao compacto" type="submit">Concluir</button>
+                            </form>
+                            <a class="botao perigo compacto" href="{% url 'atendimentos:cancelar_atendimento' atendimento.id %}" aria-label="Cancelar atendimento de {{ atendimento.paciente.nome }}">Cancelar</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="vazio">Nenhum atendimento em andamento.</p>
+    {% endif %}
+</section>
+{% endblock %}

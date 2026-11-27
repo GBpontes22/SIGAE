@@ -1,0 +1,48 @@
+{% extends "atendimentos/base.html" %}
+{% load apresentacao %}
+
+{% block title %}Histórico · SIGAE WEB{% endblock %}
+{% block content %}
+<section class="pagina-cabecalho">
+    <div><h1>Histórico</h1><p>Consulte atendimentos encerrados e a ordem cronológica de chegadas.</p></div>
+</section>
+<section class="painel">
+    <h2>Atendimentos encerrados</h2>
+    <form method="get" class="form-linha filtro">
+        <label for="filtro-medico">Médico</label>
+        <select name="id" id="filtro-medico">
+            <option value="">Todos os médicos</option>
+            {% for medico in medicos %}
+                <option value="{{ medico.id }}"{% if medico_id == medico.id %} selected{% endif %}>{{ medico.nome }} (#{{ medico.id }})</option>
+            {% endfor %}
+        </select>
+        <button class="botao secundario compacto" type="submit">Filtrar</button>
+        {{ filtro.id.errors }}
+    </form>
+    {% if historico %}
+        <div class="tabela-conteiner" role="region" aria-label="Atendimentos encerrados" tabindex="0">
+            <table>
+                <thead><tr><th scope="col">ID</th><th scope="col">Paciente</th><th scope="col">Médico</th><th scope="col">Início</th><th scope="col">Fim</th><th scope="col">Situação</th></tr></thead>
+                <tbody>
+                {% for atendimento in historico %}
+                    <tr>
+                        <td class="identificador">#{{ atendimento.id }}</td>
+                        <th scope="row">{{ atendimento.paciente.nome }}</th>
+                        <td>{{ atendimento.medico.nome }}</td>
+                        <td class="data">{{ atendimento.inicio|date:"d/m/Y H:i:s" }}</td>
+                        <td class="data">{{ atendimento.fim|date:"d/m/Y H:i:s" }}</td>
+                        <td><span class="estado {{ atendimento.situacao }}">{{ atendimento.situacao|situacao }}</span></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="vazio">Nenhum atendimento encerrado para este filtro.</p>
+    {% endif %}
+</section>
+<section class="painel">
+    <h2>Chegadas de pacientes</h2>
+    {% include "atendimentos/_lista_pacientes.html" with pacientes=chegadas rotulo_tabela="Chegadas de pacientes" sem_registros="Nenhum paciente cadastrado." %}
+</section>
+{% endblock %}

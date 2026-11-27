@@ -1,10 +1,21 @@
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 from unittest import TestCase
 
 from atendimentos.domain.paciente import Paciente, SituacaoPaciente
 
 
 class PacienteTests(TestCase):
+    def test_horario_local_repetido_compara_o_instante_real(self):
+        fuso = ZoneInfo("America/Sao_Paulo")
+        primeiro = Paciente(2, "A", datetime(2019, 2, 16, 23, 30, tzinfo=fuso, fold=0), 3)
+        segundo = Paciente(1, "B", datetime(2019, 2, 16, 23, 30, tzinfo=fuso, fold=1), 3)
+
+        self.assertLess(primeiro.chave_chegada, segundo.chave_chegada)
+        self.assertLess(primeiro.chave_prioridade, segundo.chave_prioridade)
+        self.assertEqual(primeiro.chegada.fold, 0)
+        self.assertEqual(segundo.chegada.fold, 1)
+
     def setUp(self):
         self.chegada = datetime(2026, 11, 26, 11, 0, tzinfo=timezone.utc)
         self.paciente = Paciente(

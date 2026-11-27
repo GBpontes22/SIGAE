@@ -1,1 +1,1 @@
-"""Operações que coordenarão entidades e índices do SIGAE."""
+"""Operações que coordenam entidades e índices do SIGAE."""

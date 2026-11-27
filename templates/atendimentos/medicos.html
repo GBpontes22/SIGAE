@@ -1,0 +1,56 @@
+{% extends "atendimentos/base.html" %}
+{% load apresentacao %}
+
+{% block title %}Médicos · SIGAE WEB{% endblock %}
+{% block content %}
+<section class="pagina-cabecalho">
+    <div><h1>Médicos</h1><p>Cadastre profissionais fictícios e acompanhe disponibilidade e atendimentos concluídos.</p></div>
+</section>
+<div class="grade">
+    <section class="painel">
+        <h2>Novo médico</h2>
+        <form method="post" class="formulario">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <button class="botao" type="submit">Cadastrar médico</button>
+        </form>
+    </section>
+    <section class="painel">
+        <h2>Buscar médico</h2>
+        <form method="get" class="formulario">
+            {{ consulta.as_div }}
+            <button class="botao secundario" type="submit">Buscar</button>
+        </form>
+        {% if encontrado %}
+            <p class="destaque">{{ encontrado.nome }} <span class="identificador">#{{ encontrado.id }}</span></p>
+            <p><span class="estado {{ encontrado.situacao }}">{{ encontrado.situacao|situacao }}</span> · {{ encontrado.total_concluidos }} concluído{{ encontrado.total_concluidos|pluralize }}</p>
+        {% elif consulta.cleaned_data.id %}
+            <p class="vazio">Médico não encontrado.</p>
+        {% endif %}
+    </section>
+</div>
+<section class="painel">
+    <h2>Equipe clínica</h2>
+    {% if medicos %}
+        <div class="tabela-conteiner" role="region" aria-label="Equipe clínica" tabindex="0">
+            <table>
+                <thead><tr><th scope="col">ID</th><th scope="col">Médico</th><th scope="col">Registro</th><th scope="col">Situação</th><th scope="col">Concluídos</th><th scope="col">Última atribuição</th></tr></thead>
+                <tbody>
+                {% for medico in medicos %}
+                    <tr>
+                        <td class="identificador">#{{ medico.id }}</td>
+                        <th scope="row">{{ medico.nome }}</th>
+                        <td>{{ medico.registro }}</td>
+                        <td><span class="estado {{ medico.situacao }}">{{ medico.situacao|situacao }}</span></td>
+                        <td><a href="{% url 'atendimentos:historico' %}?id={{ medico.id }}" aria-label="Ver histórico de {{ medico.nome }}">{{ medico.total_concluidos }}</a></td>
+                        <td class="data">{{ medico.ultima_atribuicao|date:"d/m/Y H:i:s"|default:"Sem atribuição" }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p class="vazio">Nenhum médico cadastrado.</p>
+    {% endif %}
+</section>
+{% endblock %}

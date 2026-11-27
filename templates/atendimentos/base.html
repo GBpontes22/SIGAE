@@ -1,4 +1,4 @@
-{% load static %}
+{% load static apresentacao %}
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -6,13 +6,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}SIGAE WEB{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    {% block estilos %}{% endblock %}
 </head>
 <body>
-    <header class="cabecalho">
-        <a class="marca" href="{% url 'atendimentos:inicio' %}">SIGAE WEB</a>
-        <span>Estrutura de Dados Avançados</span>
-    </header>
-    <main>{% block content %}{% endblock %}</main>
-    <footer>Uso exclusivo como simulador acadêmico. Utilize somente dados fictícios.</footer>
+    <aside class="barra-lateral">
+        <a class="marca" href="{% url 'atendimentos:inicio' %}">
+            {% icone "marca" %}
+            <span><strong>SIGAE</strong><small>Gestão de atendimentos</small></span>
+        </a>
+        <nav class="navegacao" aria-label="Navegação principal">
+            <a href="{% url 'atendimentos:inicio' %}" {% link_ativo 'inicio' %}>{% icone "painel" %} Painel geral</a>
+            <a href="{% url 'atendimentos:pacientes' %}" {% link_ativo 'pacientes' %}>{% icone "pacientes" %} Pacientes</a>
+            <a href="{% url 'atendimentos:triagem' %}" {% link_ativo 'triagem' %}>{% icone "triagem" %} Triagem e fila</a>
+            <a href="{% url 'atendimentos:medicos' %}" {% link_ativo 'medicos' %}>{% icone "estetoscopio" %} Médicos</a>
+            <a href="{% url 'atendimentos:atendimentos' %}" {% link_ativo 'atendimentos' %}>{% icone "atendimentos" %} Atendimentos</a>
+            <a href="{% url 'atendimentos:historico' %}" {% link_ativo 'historico' %}>{% icone "historico" %} Histórico</a>
+            <a href="{% url 'atendimentos:estruturas' %}" {% link_ativo 'estruturas' %}>{% icone "estruturas" %} Estruturas</a>
+        </nav>
+        <div class="barra-rodape">{% icone "curso" %} Simulador acadêmico</div>
+    </aside>
+    <div class="pagina">
+        <main class="layout">
+            {% for mensagem in messages %}
+                <div class="mensagem {{ mensagem.tags }}" role="{% if mensagem.tags == 'error' %}alert{% else %}status{% endif %}">
+                    {{ mensagem }}
+                </div>
+            {% endfor %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
 </body>
 </html>

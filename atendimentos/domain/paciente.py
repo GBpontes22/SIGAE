@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import StrEnum
 
 
@@ -64,11 +64,12 @@ class Paciente:
 
     @property
     def chave_chegada(self) -> tuple[datetime, int]:
-        return self.chegada, self.id
+        return self.chegada.astimezone(UTC), self.id
 
     @property
     def chave_prioridade(self) -> tuple[int, datetime, int]:
-        return self.prioridade, self.chegada, self.id
+        chegada, id = self.chave_chegada
+        return self.prioridade, chegada, id
 
     def reclassificar(self, prioridade: int) -> None:
         if self.situacao != SituacaoPaciente.AGUARDANDO:

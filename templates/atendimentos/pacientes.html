@@ -1,0 +1,37 @@
+{% extends "atendimentos/base.html" %}
+{% load apresentacao %}
+
+{% block title %}Pacientes · SIGAE WEB{% endblock %}
+{% block content %}
+<section class="pagina-cabecalho">
+    <div><h1>Pacientes</h1><p>Cadastre pacientes fictícios e consulte seus registros.</p></div>
+    <a class="botao secundario" href="{% url 'atendimentos:triagem' %}">Ir para a fila</a>
+</section>
+<div class="grade">
+    <section class="painel">
+        <h2>Novo paciente</h2>
+        <form method="post" class="formulario">
+            {% csrf_token %}
+            {{ form.as_div }}
+            <button class="botao" type="submit">Cadastrar paciente</button>
+        </form>
+    </section>
+    <section class="painel">
+        <h2>Buscar paciente</h2>
+        <form method="get" class="formulario">
+            {{ consulta.as_div }}
+            <button class="botao secundario" type="submit">Buscar</button>
+        </form>
+        {% if encontrado %}
+            <p class="destaque">{{ encontrado.nome }} <span class="identificador">#{{ encontrado.id }}</span></p>
+            <p><span class="estado {{ encontrado.situacao }}">{{ encontrado.situacao|situacao }}</span></p>
+        {% elif consulta.cleaned_data.id %}
+            <p class="vazio">Paciente não encontrado.</p>
+        {% endif %}
+    </section>
+</div>
+<section class="painel">
+    <h2>Registros de pacientes</h2>
+    {% include "atendimentos/_lista_pacientes.html" with rotulo_tabela="Registros de pacientes" sem_registros="Nenhum paciente cadastrado." %}
+</section>
+{% endblock %}

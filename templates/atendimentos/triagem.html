@@ -1,0 +1,23 @@
+{% extends "atendimentos/base.html" %}
+{% load apresentacao %}
+
+{% block title %}Triagem e fila · SIGAE WEB{% endblock %}
+{% block content %}
+<section class="pagina-cabecalho">
+    <div><h1>Triagem e fila</h1><p>Ajuste o risco e acompanhe quem aguarda atendimento.</p></div>
+    <form method="post" action="{% url 'atendimentos:chamar' %}">
+        {% csrf_token %}
+        <button class="botao" type="submit"{% if not proximo %} disabled{% endif %}>Chamar próximo paciente</button>
+    </form>
+</section>
+{% if proximo %}
+    <section class="painel destaque-fila">
+        <div><h2>Próximo pela prioridade</h2><p class="destaque">{{ proximo.nome }} <span class="identificador">#{{ proximo.id }}</span></p></div>
+        <span class="risco risco-{{ proximo.prioridade }}">{{ proximo.prioridade|prioridade }}</span>
+    </section>
+{% endif %}
+<section class="painel">
+    <h2>Fila por ordem de chegada</h2>
+    {% include "atendimentos/_lista_pacientes.html" with pacientes=fila acoes=True rotulo_tabela="Fila por ordem de chegada" sem_registros="Nenhum paciente aguardando." %}
+</section>
+{% endblock %}

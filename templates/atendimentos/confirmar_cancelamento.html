@@ -1,0 +1,16 @@
+{% extends "atendimentos/base.html" %}
+
+{% block title %}Confirmar cancelamento · SIGAE WEB{% endblock %}
+{% block content %}
+<section class="pagina-cabecalho">
+    <h1>{{ titulo }}</h1>
+</section>
+<section class="painel">
+    <p>{{ descricao }}</p>
+    <form method="post" class="form-linha filtro">
+        {% csrf_token %}
+        <a class="botao secundario" href="{% url destino %}">Voltar sem cancelar</a>
+        <button class="botao perigo" type="submit">Confirmar cancelamento</button>
+    </form>
+</section>
+{% endblock %}
